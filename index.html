@@ -320,6 +320,7 @@
         <li><a href="#agenda">Embodied robot을 위한 연구 의제</a></li>
         <li><a href="#architecture">가능한 시스템 구조</a></li>
         <li><a href="#recap">종합 정리</a></li>
+        <li><a href="#return">Probabilistic Robotics로의 귀환</a></li>
         <li><a href="#refs">참고문헌</a></li>
       </ol>
     </nav>
@@ -781,6 +782,104 @@
       </div>
     </section>
 
+    <section id="return">
+      <h2>10. Probabilistic Robotics로의 귀환</h2>
+      <p>
+        여기서 한 가지 역사적 관찰을 덧붙일 필요가 있다. 지금까지의 논의를 천천히 따라오면, 최신 용어들이 전혀 새로운 문제를 발명했다기보다
+        고전 로보틱스가 오래전에 정식화했던 문제로 되돌아가고 있음을 보게 된다. Sebastian Thrun, Wolfram Burgard, Dieter Fox의
+        <a href="https://mitpress.mit.edu/9780262201629/probabilistic-robotics/">Probabilistic Robotics</a>는
+        로봇을 불확실성 아래에서 지각하고 행동하는 시스템으로 정식화했다<a href="#ref23">[23]</a>. 그 책의 언어로 핵심 문제를 쓰면 다음과 같다.
+      </p>
+      <span class="formula">
+        belief update: b_t = p(x_t | z_{1:t}, u_{1:t})<br>
+        transition model: p(x_{t+1} | x_t, u_t)<br>
+        observation model: p(z_t | x_t)<br>
+        planning/control: π(b_t, g) -> u_t
+      </span>
+      <p>
+        이 수식은 앞 절의 renderer, simulator, planner와 거의 일대일로 대응한다.
+        Renderer는 observation model <code>p(z_t | x_t)</code>에 가깝고, simulator는 transition model
+        <code>p(x_{t+1} | x_t, u_t)</code>에 해당하며, planner는 belief 또는 state를 입력으로 받아 행동을 고르는 policy/control 문제이다.
+        우리가 앞에서 쓴 <code>R</code>, <code>F</code>, <code>Π</code>는 사실 이 고전적 분해를 foundation model 시대의 언어로 다시 쓴 것이다.
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th>고전 Probabilistic Robotics</th>
+            <th>최근 World Model / VLA 용어</th>
+            <th>의미</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>State 또는 belief <code>x_t, b_t</code></td>
+            <td>Latent world state, belief state, scene representation</td>
+            <td>로봇이 세계에 대해 현재 가지고 있는 추정 또는 압축 표현</td>
+          </tr>
+          <tr>
+            <td>Observation model <code>p(z_t | x_t)</code></td>
+            <td>Renderer, decoder, generative observation model</td>
+            <td>내부 상태가 어떤 관측으로 나타나는지 설명하는 모델</td>
+          </tr>
+          <tr>
+            <td>Motion/transition model <code>p(x_{t+1} | x_t, u_t)</code></td>
+            <td>Simulator, dynamics model, action-conditioned world model</td>
+            <td>행동이 세계 상태를 어떻게 바꾸는지 예측하는 모델</td>
+          </tr>
+          <tr>
+            <td>POMDP planning, control, policy</td>
+            <td>Planner, VLA, WAM policy head</td>
+            <td>불완전한 관측과 목표 아래에서 행동을 선택하는 절차</td>
+          </tr>
+          <tr>
+            <td>Reward, utility, task objective</td>
+            <td>Reward grounding, task progress model, deployment feedback</td>
+            <td>어떤 상태 변화가 과제의 성공 또는 실패를 뜻하는지 해석하는 기준</td>
+          </tr>
+        </tbody>
+      </table>
+      <p>
+        그러므로 “회귀”라는 표현은 상당히 정확하다. 다만 단순한 반복은 아니다. 고전 로보틱스에서는 상태 변수와 센서 모델, 동역학 모델을 사람이 비교적 명시적으로 설계했다.
+        로봇 pose, landmark, occupancy grid, map, range sensor model, odometry noise model 같은 것들이 그 예이다.
+        반면 현재의 foundation robotics는 그 변수들 자체를 대규모 데이터에서 학습하려 한다. 상태 공간 <code>Z</code>가 무엇인지,
+        관측 모델 <code>R</code>이 무엇을 보존해야 하는지, transition operator <code>F</code>가 어떤 물리량을 예측해야 하는지,
+        reward가 어떤 task progress를 뜻하는지를 모두 학습과 grounding의 문제로 다시 열어 놓은 것이다.
+      </p>
+      <p>
+        이 흐름은 대략 다음과 같이 볼 수 있다.
+      </p>
+      <span class="formula">
+        고전 로보틱스: 명시적 state + 명시적 확률모델 + planning<br>
+        2010년대 deep learning: end-to-end perception/control, representation learning<br>
+        2020년대 foundation robotics: perception, language, action의 대규모 결합<br>
+        2025년 이후: belief, dynamics, observation, reward, grounding으로의 귀환
+      </span>
+      <p>
+        여기서 흥미로운 점은, deep learning이 고전적 확률 로보틱스를 폐기했다기보다 잠시 우회했다는 사실이다.
+        End-to-end 모델은 명시적 상태 추정과 모델 기반 제어를 덜 보이게 만들었다. 그러나 로봇이 실제 물리 세계에서 장기적으로 행동해야 하는 순간,
+        다시 불확실성, 부분 관측, 동역학, 관측 모델, 보상 해석, 배포 후 실패 학습의 문제가 돌아온다.
+        물리 세계에서 행동하는 agent의 수학은 이 중력장을 쉽게 벗어나지 못한다.
+      </p>
+      <p>
+        이 관점에서 최신 VLA/WAM/world model 논의의 진짜 새로움은 고전적 구조를 버린 데 있지 않다.
+        새로움은 그 구조의 각 항을 사람이 손으로 설계하지 않고, 인터넷 비디오, 로봇 demonstration, human motion, 시뮬레이션, deployment trace에서 학습하려는 데 있다.
+        즉 과거의 질문은 “주어진 state와 sensor model에서 어떻게 추정하고 계획할 것인가”였다면, 현재의 질문은 다음과 같이 바뀌었다.
+      </p>
+      <ul>
+        <li><code>x</code> 또는 <code>Z</code>는 무엇이어야 하는가?</li>
+        <li>이미지, 비디오, language, tactile signal은 어떤 observation model로 연결되어야 하는가?</li>
+        <li>사람의 영상에서 action 또는 latent transition code를 어떻게 추출할 것인가?</li>
+        <li>다른 embodiment로 옮겨도 보존되어야 하는 task-relevant effect는 무엇인가?</li>
+        <li>reward와 failure explanation은 누가, 어떤 표현 위에서 붙이는가?</li>
+      </ul>
+      <div class="note">
+        <strong>해석.</strong>
+        Probabilistic Robotics가 틀린 것이 아니라, 그 책의 변수들을 사람이 손으로 정하던 시대가 지나가고 있다.
+        지금의 world model, VLA, WAM 연구는 그 변수, 상태공간, 관측모델, 동역학, reward grounding을 foundation-scale data로 다시 배우려는 시도이다.
+        따라서 최신 흐름은 단절이라기보다, 고전적 확률 로보틱스의 문제의식을 learned representation과 대규모 데이터의 시대에 다시 호출하는 과정이다.
+      </div>
+    </section>
+
     <section id="refs" class="refs">
       <h2>참고문헌</h2>
       <ol>
@@ -806,6 +905,7 @@
         <li id="ref20">Elis Karcini et al., <a href="https://arxiv.org/abs/2606.06556">Robots Need More than VLA and World Models</a>, arXiv:2606.06556.</li>
         <li id="ref21">World Labs, <a href="https://www.worldlabs.ai/">World Labs</a>, company and research overview.</li>
         <li id="ref22">OpenReview, <a href="https://openreview.net/forum?id=qE2FyvRvuF">WMPO: World-Model-based Policy Optimization for Vision-Language-Action Models</a>, ICLR 2026.</li>
+        <li id="ref23">Sebastian Thrun, Wolfram Burgard, Dieter Fox, <a href="https://mitpress.mit.edu/9780262201629/probabilistic-robotics/">Probabilistic Robotics</a>, MIT Press, 2005.</li>
       </ol>
       <p class="small">
         참고문헌에는 대화 중 직접 언급한 논문, 서베이, 연구 보고서, 기술 블로그, 공식 모델 페이지를 포함했다. 일부 항목은 공식 논문 페이지가 아니라 프로젝트 페이지 또는 기관 설명 페이지이다.
