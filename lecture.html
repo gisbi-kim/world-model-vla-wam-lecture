@@ -1,0 +1,942 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>World Model, VLA, WAM: Embodied Robot Intelligence의 현재 구조</title>
+  <style>
+    :root {
+      --ink: #171717;
+      --muted: #5d646c;
+      --paper: #fbfaf7;
+      --line: #d9d5ce;
+      --panel: #f1eee8;
+      --accent: #224f64;
+      --accent-2: #7b3f2a;
+      --code: #f7f1e6;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+      font-family: "Malgun Gothic", "Apple SD Gothic Neo", "Noto Sans KR", Arial, sans-serif;
+      line-height: 1.78;
+      word-break: keep-all;
+      overflow-wrap: break-word;
+    }
+
+    a {
+      color: var(--accent);
+      text-decoration: none;
+      border-bottom: 1px solid rgba(34, 79, 100, 0.35);
+      overflow-wrap: anywhere;
+    }
+
+    a:hover {
+      border-bottom-color: var(--accent);
+    }
+
+    .page {
+      max-width: 1040px;
+      margin: 0 auto;
+      padding: 56px 28px 96px;
+    }
+
+    header {
+      border-bottom: 2px solid var(--ink);
+      padding-bottom: 32px;
+      margin-bottom: 38px;
+    }
+
+    .kicker {
+      margin: 0 0 14px;
+      color: var(--accent-2);
+      font-size: 0.92rem;
+      font-weight: 700;
+      letter-spacing: 0;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2.2rem, 5vw, 4.6rem);
+      line-height: 1.12;
+      letter-spacing: 0;
+      font-weight: 800;
+      overflow-wrap: anywhere;
+    }
+
+    .subtitle {
+      margin: 24px 0 0;
+      max-width: 820px;
+      color: #30343a;
+      font-size: 1.12rem;
+      line-height: 1.75;
+    }
+
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 22px;
+      margin-top: 28px;
+      color: var(--muted);
+      font-size: 0.94rem;
+    }
+
+    nav {
+      margin: 0 0 40px;
+      padding: 22px 0;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+    }
+
+    nav ol {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px 34px;
+      margin: 0;
+      padding-left: 22px;
+    }
+
+    section {
+      margin: 54px 0;
+    }
+
+    h2 {
+      margin: 0 0 20px;
+      font-size: clamp(1.55rem, 3vw, 2.2rem);
+      line-height: 1.25;
+      letter-spacing: 0;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 12px;
+      overflow-wrap: anywhere;
+    }
+
+    h3 {
+      margin: 34px 0 10px;
+      font-size: 1.22rem;
+      line-height: 1.45;
+      letter-spacing: 0;
+      overflow-wrap: anywhere;
+    }
+
+    p {
+      margin: 14px 0;
+    }
+
+    .lead {
+      font-size: 1.08rem;
+      color: #2b2f34;
+    }
+
+    .note {
+      padding: 18px 20px;
+      background: var(--panel);
+      border-left: 4px solid var(--accent);
+      margin: 22px 0;
+    }
+
+    .note strong {
+      color: var(--accent);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin: 24px 0;
+    }
+
+    .box {
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.42);
+      padding: 18px;
+      min-height: 190px;
+    }
+
+    .box h3 {
+      margin-top: 0;
+    }
+
+    .box .tag {
+      display: inline-block;
+      margin-bottom: 10px;
+      color: var(--accent-2);
+      font-weight: 700;
+      font-size: 0.9rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 24px 0;
+      background: rgba(255, 255, 255, 0.5);
+      font-size: 0.96rem;
+    }
+
+    th, td {
+      border: 1px solid var(--line);
+      padding: 12px 14px;
+      vertical-align: top;
+    }
+
+    th {
+      background: var(--panel);
+      text-align: left;
+      font-weight: 800;
+    }
+
+    code {
+      background: var(--code);
+      border: 1px solid #eadfcd;
+      padding: 0.1em 0.35em;
+      border-radius: 3px;
+      font-family: Consolas, "Cascadia Mono", monospace;
+      font-size: 0.92em;
+    }
+
+    .formula {
+      display: block;
+      margin: 18px 0;
+      padding: 16px 18px;
+      background: var(--code);
+      border: 1px solid #eadfcd;
+      font-family: Consolas, "Cascadia Mono", monospace;
+      white-space: normal;
+      line-height: 1.65;
+      overflow-wrap: anywhere;
+    }
+
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin: 24px 0;
+    }
+
+    .flow div {
+      border: 1px solid var(--line);
+      padding: 14px;
+      background: rgba(255, 255, 255, 0.46);
+      min-height: 120px;
+    }
+
+    .flow strong {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--accent);
+    }
+
+    .refs {
+      border-top: 2px solid var(--ink);
+      padding-top: 26px;
+      font-size: 0.95rem;
+    }
+
+    .refs ol {
+      padding-left: 24px;
+    }
+
+    .refs li {
+      margin: 10px 0;
+    }
+
+    .small {
+      color: var(--muted);
+      font-size: 0.93rem;
+    }
+
+    @media (max-width: 820px) {
+      .page {
+        padding: 34px 18px 70px;
+      }
+
+      nav ol,
+      .grid,
+      .flow {
+        grid-template-columns: 1fr;
+      }
+
+      th, td {
+        padding: 10px;
+      }
+
+      table {
+        display: block;
+        max-width: 100%;
+        overflow-x: auto;
+      }
+    }
+
+    @media print {
+      body {
+        background: white;
+      }
+
+      .page {
+        max-width: none;
+        padding: 28px;
+      }
+
+      a {
+        color: inherit;
+        border-bottom: none;
+      }
+
+      section {
+        break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header>
+      <p class="kicker">Lecture Note / Embodied AI</p>
+      <h1>World Model, VLA, WAM: Embodied Robot Intelligence의 현재 구조</h1>
+      <p class="subtitle">
+        이 강의문은 최근 World Model 논의에서 제기된 renderer, simulator, planner의 기능적 구분을 출발점으로 삼아,
+        Vision-Language-Action 모델과 World Action Model의 흐름을 하나의 체계로 정리한다. 목적은 용어의 나열이 아니라,
+        궁극적으로 물리 세계에서 작동하는 embodied robot을 만들기 위해 어떤 구성 요소가 필요하며, 왜 단일한 대형 모델만으로는 충분하지 않은지를 설명하는 데 있다.
+      </p>
+      <div class="meta">
+        <span>작성일: 2026년 6월 11일</span>
+        <span>주제: World Models, VLA, WAM, Robot Foundation Models</span>
+      </div>
+    </header>
+
+    <nav aria-label="목차">
+      <ol>
+        <li><a href="#problem">문제의 출발점</a></li>
+        <li><a href="#taxonomy">세 기능: renderer, simulator, planner</a></li>
+        <li><a href="#space">표현 공간과 수학적 구조</a></li>
+        <li><a href="#vla">VLA의 위치</a></li>
+        <li><a href="#wam">WAM의 등장</a></li>
+        <li><a href="#surveys">2026년 이후 서베이의 공통 주장</a></li>
+        <li><a href="#agenda">Embodied robot을 위한 연구 의제</a></li>
+        <li><a href="#architecture">가능한 시스템 구조</a></li>
+        <li><a href="#recap">종합 정리</a></li>
+        <li><a href="#return">Probabilistic Robotics로의 귀환</a></li>
+        <li><a href="#refs">참고문헌</a></li>
+      </ol>
+    </nav>
+
+    <section id="problem">
+      <h2>1. 문제의 출발점</h2>
+      <p class="lead">
+        최근 인공지능 연구에서 <strong>world model</strong>이라는 말은 매우 넓게 쓰인다. 어떤 경우에는 비디오 생성 모델을 가리키고,
+        어떤 경우에는 강화학습에서 환경의 동역학을 예측하는 내부 모델을 뜻하며, 또 다른 경우에는 로봇이 실제 세계에서 행동하기 위해 필요한
+        물리적 이해 전체를 뜻한다. 이 말의 범위가 넓어질수록, 논의는 빠르게 모호해진다.
+      </p>
+      <p>
+        Fei-Fei Li와 World Labs 팀의 글 <a href="https://drfeifei.substack.com/p/a-functional-taxonomy-of-world-models">A Functional Taxonomy of World Models</a>
+        는 이 혼란을 정리하기 위해 world model을 세 기능으로 나눈다<a href="#ref1">[1]</a>. 그 세 기능은 <strong>renderer</strong>,
+        <strong>simulator</strong>, <strong>planner</strong>이다. 이 구분은 특정 아키텍처의 이름이 아니다. 오히려 한 지능 시스템이
+        세계와 관계를 맺기 위해 수행해야 하는 기능적 역할의 분해이다.
+      </p>
+      <div class="note">
+        <strong>핵심 명제.</strong>
+        World model 논의의 핵심은 “그럴듯한 장면을 생성하는가”가 아니라, “세계의 상태를 표현하고, 행동의 결과를 예측하며,
+        그 예측을 근거로 다음 행동을 선택할 수 있는가”에 있다.
+      </div>
+    </section>
+
+    <section id="taxonomy">
+      <h2>2. 세 기능: Renderer, Simulator, Planner</h2>
+      <p>
+        세 기능은 서로 대체 관계가 아니다. 하나의 embodied intelligence가 완성되려면 세 기능이 닫힌 고리(closed loop) 안에서 연결되어야 한다.
+        하지만 현재 연구와 산업 제품은 대개 이 중 일부 기능을 강하게 수행하고, 다른 기능은 약하게 수행한다.
+      </p>
+
+      <div class="grid">
+        <article class="box">
+          <span class="tag">Renderer</span>
+          <h3>세계가 어떻게 보이는가</h3>
+          <p>
+            Renderer는 내부 표현이나 조건 입력으로부터 관측 가능한 장면을 만든다. 이미지, 비디오, 3D view, Gaussian splat, mesh 등이 여기에 속한다.
+            Sora, Veo, Marble과 같은 생성 시스템은 이 기능을 강하게 보여준다<a href="#ref8">[8]</a><a href="#ref9">[9]</a><a href="#ref10">[10]</a>.
+          </p>
+        </article>
+
+        <article class="box">
+          <span class="tag">Simulator</span>
+          <h3>세계가 어떻게 변하는가</h3>
+          <p>
+            Simulator는 현재 상태와 행동이 주어졌을 때 다음 상태, 다음 관측, 보상, 실패 가능성 등을 예측한다. Genie, Cosmos, DreamerV3는
+            이 기능을 중심으로 이해할 수 있다<a href="#ref11">[11]</a><a href="#ref13">[13]</a><a href="#ref14">[14]</a>.
+          </p>
+        </article>
+
+        <article class="box">
+          <span class="tag">Planner</span>
+          <h3>무엇을 해야 하는가</h3>
+          <p>
+            Planner는 목표를 달성하기 위해 행동을 선택한다. 로봇 분야에서 RT-2, OpenVLA, π₀와 같은 VLA 모델은 대체로 이 위치에 놓인다
+            <a href="#ref5">[5]</a><a href="#ref6">[6]</a><a href="#ref7">[7]</a>.
+          </p>
+        </article>
+      </div>
+
+      <p>
+        이 구분을 비디오 생성 모델에 적용하면 중요한 경계가 보인다. 어떤 모델이 현실적인 영상을 만든다고 해서 곧바로 simulator가 되는 것은 아니다.
+        시각적 일관성은 renderer의 성취일 수 있다. Simulator라고 부르려면, 행동이 개입되었을 때 세계가 어떻게 바뀌는지를 안정적으로 예측해야 한다.
+        따라서 Sora나 Veo류의 모델은 world simulator를 향한 중요한 징후를 보이지만, 기본 위치는 여전히 renderer에 가깝다<a href="#ref8">[8]</a><a href="#ref9">[9]</a>.
+      </p>
+    </section>
+
+    <section id="space">
+      <h2>3. 표현 공간과 수학적 구조</h2>
+      <p>
+        이제 한 단계 더 들어가 보자. Renderer와 simulator가 실제로 “어디에서” 작동하는가? 여기서 말하는 어디는 물리적 위치가 아니라
+        <strong>수학적 표현 공간</strong>이다. 많은 오해는 world model이 현실의 3차원 공간을 그대로 내부에 복사한다고 생각하는 데서 생긴다.
+        실제로는 대부분의 모델에서 렌더링과 시뮬레이션은 현실 공간에서 직접 일어나지 않는다. 그것들은 모델 내부의
+        <strong>latent state space</strong>, <strong>belief state space</strong>, <strong>token space</strong>,
+        또는 <strong>feature space</strong> 위에서 일어나며, 필요할 때만 이미지, 비디오, 3D 구조, 로봇 행동으로 decode된다.
+      </p>
+      <p>
+        이 관점을 가장 간단히 쓰면 다음과 같다.
+      </p>
+      <span class="formula">
+        state: z_t ∈ Z<br>
+        rendering: o_t = R(z_t)<br>
+        simulation: z_{t+1} = F(z_t, a_t)<br>
+        planning: a_t = Π(z_t, g)
+      </span>
+      <p>
+        여기서 <code>Z</code>는 world model의 내부 상태 공간이고, <code>R</code>은 renderer, <code>F</code>는 dynamics 또는 simulator,
+        <code>Π</code>는 planner 또는 policy이다. <code>o_t</code>는 이미지, 비디오, depth, text, tactile reading 같은 관측이며,
+        <code>a_t</code>는 행동, <code>g</code>는 목표 또는 언어 지시이다. 이 수식은 매우 단순하지만, 현재 논의를 정리하는 데 충분히 강력하다.
+        좋은 world model이란 <code>R</code>, <code>F</code>, <code>Π</code>가 서로 다른 표현 위에서 따로 노는 것이 아니라,
+        같은 상태 표현 <code>Z</code>를 공유하면서 시각적 복원, 물리적 예측, 행동 선택을 동시에 지탱하는 모델이다.
+      </p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>모델 계열</th>
+            <th>주된 수학적 공간</th>
+            <th>설명</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>이미지/비디오 renderer</td>
+            <td>Latent space, diffusion noise space, video token space</td>
+            <td>Sora, Veo류의 모델은 대개 픽셀 공간 자체보다 압축된 latent 또는 token 공간에서 denoising하며 관측을 생성한다.</td>
+          </tr>
+          <tr>
+            <td>3D world model</td>
+            <td>3D coordinate field, radiance field, Gaussian splat, voxel, mesh</td>
+            <td>Marble, NeRF, 3D Gaussian Splatting류는 비교적 명시적인 공간 표현을 갖는다. 그러나 이것도 물리 세계 자체가 아니라 모델화된 scene representation이다.</td>
+          </tr>
+          <tr>
+            <td>RL world model</td>
+            <td>Latent state space, recurrent belief state</td>
+            <td>Dreamer류는 관측을 latent state로 encode하고, 그 latent state 위에서 미래 state, reward, continuation을 rollout한다.</td>
+          </tr>
+          <tr>
+            <td>VLA</td>
+            <td>Multimodal embedding space + action space</td>
+            <td>이미지, 언어, 로봇 상태가 공통 embedding으로 들어가고, action token 또는 continuous action으로 decode된다.</td>
+          </tr>
+          <tr>
+            <td>WAM</td>
+            <td>Joint video-action latent space</td>
+            <td>미래 관측과 행동을 함께 표현하는 latent dynamics 공간을 만들려 한다. 그래서 simulator와 planner의 결합으로 이해된다.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p>
+        관측이 불완전한 실제 세계에서는 <code>z_t</code>를 단순한 state라기보다 <strong>belief state</strong>로 보는 편이 더 정확하다.
+        로봇은 세계 전체를 직접 보지 못한다. 카메라에 가려진 물체, 접촉면의 미세한 힘, 마찰계수, 물체 내부의 질량 분포는 직접 관측되지 않는다.
+        따라서 내부 상태는 보통 다음과 같은 조건부 믿음에 가깝다.
+      </p>
+      <span class="formula">
+        b_t = p(world_state_t | observations_{≤t}, actions_{&lt;t})<br>
+        b_{t+1} = F(b_t, a_t)
+      </span>
+      <p>
+        즉 simulator는 현실 세계의 완전한 복사본을 시간 전진시키는 장치가 아니다. 그것은 관측과 행동의 역사로부터 구성된 belief를 갱신하는 연산자이다.
+        이 때문에 world model의 표현은 “세계의 모든 것”을 담을 필요가 없다. 행동과 예측에 충분한 정보를 담으면 된다.
+      </p>
+      <div class="note">
+        <strong>표현의 핵심.</strong>
+        렌더링은 내부 표현에서 관측 공간으로 가는 사상이고, 시뮬레이션은 같은 내부 표현 위에서 시간 발전 연산자를 적용하는 것이다.
+        따라서 embodied AI에서 중요한 질문은 “얼마나 사실적인 영상을 만드는가”만이 아니라, “그 표현이 행동에 대해 동역학적으로 예측 가능하고,
+        동시에 관측으로 decode 가능하며, 목표에 따라 행동을 선택할 만큼 구조화되어 있는가”이다.
+      </div>
+    </section>
+
+    <section id="vla">
+      <h2>4. VLA의 위치</h2>
+      <p>
+        <strong>Vision-Language-Action</strong>, 즉 VLA 모델은 시각 관측과 언어 지시를 받아 로봇 행동을 출력하는 모델이다.
+        가장 단순한 도식은 다음과 같다.
+      </p>
+      <span class="formula">image / observation + language instruction + robot state -> action</span>
+      <p>
+        RT-2는 웹 규모의 vision-language 사전학습을 로봇 제어로 옮기려 한 대표적 사례이며<a href="#ref5">[5]</a>,
+        OpenVLA는 공개된 7B 규모 VLA 모델로 다양한 로봇 demonstration을 학습해 일반 조작 능력을 보였다<a href="#ref6">[6]</a>.
+        π₀는 VLM 위에 flow matching 기반 action expert를 얹어 연속적이고 정밀한 로봇 행동을 생성하려 했다<a href="#ref7">[7]</a>.
+      </p>
+      <p>
+        VLA의 강점은 의미 일반화(semantic generalization)에 있다. 물체 이름, 지시문, 장면의 의미를 이해하고 행동으로 변환하는 능력은 이전의
+        좁은 imitation policy보다 훨씬 강하다. 그러나 VLA는 대체로 <strong>reactive observation-to-action mapping</strong>이다.
+        즉, 현재 관측에서 곧바로 행동으로 간다. 이 구조는 다음과 같은 문제를 남긴다.
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th>문제</th>
+            <th>설명</th>
+            <th>필요한 보완</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>물리적 선견성 부족</td>
+            <td>행동 뒤의 접촉, 미끄러짐, 충돌, 실패를 명시적으로 상상하지 못한다.</td>
+            <td>Action-conditioned world prediction</td>
+          </tr>
+          <tr>
+            <td>장기 과제의 누적 오류</td>
+            <td>긴 작업에서는 작은 오차가 누적되어 실패한다.</td>
+            <td>Temporal abstraction, rollout evaluation</td>
+          </tr>
+          <tr>
+            <td>Embodiment gap</td>
+            <td>사람 손, 다른 로봇 팔, 휴머노이드의 행동 공간이 서로 다르다.</td>
+            <td>Retargeting, shared action representation</td>
+          </tr>
+          <tr>
+            <td>데이터 병목</td>
+            <td>로봇 demonstration은 비싸고 느리며 환경 다양성이 제한된다.</td>
+            <td>Human video, simulation, auto-labeling</td>
+          </tr>
+        </tbody>
+      </table>
+      <p>
+        2024년 VLA 서베이는 VLA 연구를 하나의 분야로 정리했고<a href="#ref2">[2]</a>, 이후 action tokenization 관점의 서베이는
+        로봇 행동을 어떤 단위와 형식으로 모델에 넣고 뽑을 것인가를 중요한 쟁점으로 부각했다<a href="#ref4">[4]</a>.
+        2026년의 데이터 중심 서베이는 여기서 한 걸음 더 나아가, VLA의 다음 진전은 모델 구조만이 아니라 데이터셋, 벤치마크, 데이터 엔진의 공동 설계에 달려 있다고 주장한다<a href="#ref3">[3]</a>.
+      </p>
+    </section>
+
+    <section id="wam">
+      <h2>5. WAM의 등장</h2>
+      <p>
+        <strong>World Action Model</strong>, 즉 WAM은 VLA와 world model의 결합을 가리키는 최근 용어이다. 간단히 말하면,
+        VLA가 “보고 곧바로 행동하는” 모델이라면, WAM은 “행동 전후의 세계 변화를 모델링하면서 행동하는” 모델이다.
+      </p>
+      <span class="formula">observation + language + world prediction <-> action generation</span>
+      <p>
+        2026년의 WAM 서베이는 WAM을 “predictive world modeling과 action generation을 통합하는 embodied foundation model”로 정의한다
+        <a href="#ref15">[15]</a>. 이 정의에서 중요한 점은 WAM이 단순히 world model을 옆에 붙인 VLA가 아니라는 것이다.
+        WAM은 미래 상태와 행동을 함께 모델링한다. 말하자면 planner가 simulator를 내장하기 시작한 형태이다.
+      </p>
+
+      <h3>Cascaded WAM과 Joint WAM</h3>
+      <p>
+        WAM 서베이는 WAM을 크게 두 계열로 나눈다<a href="#ref15">[15]</a>. 첫째는 <strong>Cascaded WAM</strong>이다.
+        여기서는 world model이 먼저 미래 관측이나 상태를 생성하고, 별도의 action model이 그 미래를 바탕으로 행동을 선택한다.
+        둘째는 <strong>Joint WAM</strong>이다. 여기서는 미래 상태와 행동이 하나의 모델 안에서 함께 생성되거나 함께 정렬된다.
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th>구조</th>
+            <th>장점</th>
+            <th>한계</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Cascaded WAM</td>
+            <td>world prediction과 action decoding의 역할이 명확하다.</td>
+            <td>추론 시간이 길고, 생성된 미래와 실제 행동 사이의 정합성이 깨질 수 있다.</td>
+          </tr>
+          <tr>
+            <td>Joint WAM</td>
+            <td>미래 상태와 행동을 공동 분포로 다루므로 video-action alignment가 강해질 수 있다.</td>
+            <td>학습 안정성, 데이터 요구량, 평가 기준이 복잡하다.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p>
+        DreamZero는 WAM을 zero-shot policy로 제안하며, 비디오 diffusion backbone 위에서 미래 세계 상태와 행동을 함께 학습하려 한다
+        <a href="#ref16">[16]</a>. Fast-WAM은 여기서 한 가지 중요한 질문을 던진다. 로봇이 실제로 행동할 때마다 미래 비디오를 생성해야 하는가?
+        이 논문은 test-time future imagination 자체보다, 학습 중 video modeling objective가 representation을 형성하는 효과가 더 중요할 수 있음을 보인다
+        <a href="#ref17">[17]</a>. OA-WAM은 물체별 slot과 identity를 통해 조작 대상의 addressability를 높이려 한다<a href="#ref18">[18]</a>.
+      </p>
+      <div class="note">
+        <strong>정리.</strong>
+        WAM은 Fei-Fei Li의 세 기능으로 보면 simulator와 planner의 결합이다. 다만 비디오 생성 backbone을 사용할 경우 renderer 성분도 포함한다.
+        따라서 WAM은 세 부류 중 하나가 아니라, 세 기능이 서로 결합되는 현재 연구 경향을 보여주는 이름이다.
+      </div>
+
+      <div class="note">
+        <strong>보충: WAM은 VLA의 상위 개념인가.</strong>
+        기능적ㆍ수학적 정의로는 대체로 그렇다고 볼 수 있다. 다만 이것은 모든 WAM 구현이 모든 VLA 구현을 아키텍처적으로 포함한다는 뜻은 아니다.
+        더 정확히는 WAM이 VLA에 world dynamics 또는 consequence prediction 항을 추가한 일반화된 formulation이라는 뜻이다.
+        VLA는 보통 다음과 같은 policy-only 모델로 쓸 수 있다.
+        <span class="formula">π(a_t | o_t, l, h_t)</span>
+        여기서 <code>o_t</code>는 현재 관측, <code>l</code>은 언어 지시, <code>h_t</code>는 과거 history, <code>a_t</code>는 행동이다.
+        즉 VLA는 현재까지의 관측과 지시로부터 곧바로 행동을 뽑는다.
+        WAM은 여기에 미래 세계 변화와 행동의 결합 분포를 함께 모델링한다.
+        <span class="formula">p(a_t, z_{t+1:T}, o_{t+1:T} | o_{≤t}, a_{&lt;t}, l)</span>
+        또는 더 구조적으로 쓰면 다음과 같다.
+        <span class="formula">
+          z_t = E(o_{≤t}, a_{&lt;t}, l)<br>
+          z_{t+1} ~ F(z_t, a_t)<br>
+          a_t ~ Π(z_t, l, g)<br>
+          o_t ~ R(z_t)
+        </span>
+        따라서 WAM은 action만 출력하는 모델이 아니라, action과 그 action이 만들 미래 world trajectory를 함께 다루는 모델이다.
+        이때 world prediction 부분을 marginalize하거나 사용하지 않으면 WAM은 VLA처럼 행동할 수 있다.
+        <span class="formula">π_WAM(a_t | o_{≤t}, l) = ∫ p(a_t, z_{t+1:T} | o_{≤t}, l) dz</span>
+        이 의미에서 VLA는 WAM의 special case 또는 policy marginal이라고 할 수 있다.
+        하지만 아키텍처 계보까지 포함한 집합 관계는 아니다. 어떤 WAM은 비디오 diffusion 기반이고, 어떤 VLA는 language-action transformer 기반일 수 있다.
+        그러므로 가장 정확한 말은 다음과 같다. <strong>VLA는 policy-only planner이고, WAM은 world-dynamics-aware planner이다.</strong>
+        Fei-Fei Li식 분류로 쓰면 VLA는 주로 planner이고, WAM은 planner와 simulator의 결합이다. Renderer까지 사용하는 WAM은 renderer, simulator, planner를 모두 포함하는 closed-loop world model에 가까워진다.
+      </div>
+    </section>
+
+    <section id="surveys">
+      <h2>6. 2026년 이후 서베이의 공통 주장</h2>
+      <p>
+        최근 서베이들은 서로 다른 용어를 쓰지만, 공통된 방향을 가리킨다. 그 방향은 “더 큰 VLA를 만들면 로봇 지능이 완성된다”가 아니다.
+        오히려 VLA, world model, reward model, embodiment interface, data engine이 함께 구성되어야 한다는 쪽이다.
+      </p>
+
+      <h3>5.1 World model은 policy를 위한 예측 장치이다</h3>
+      <p>
+        <a href="https://ntumars.github.io/wm-robot-survey/">World Model for Robot Learning</a> 서베이는 world model을
+        policy learning, planning, simulation, evaluation, data generation, robotic video generation의 중심 도구로 본다<a href="#ref12">[12]</a>.
+        여기서 world model은 단순한 생성기가 아니라, 로봇이 행동의 결과를 계산하고, 실제 시행착오를 줄이며, 실패를 미리 평가하게 하는 예측 장치이다.
+      </p>
+
+      <h3>5.2 데이터 인프라가 모델 구조만큼 중요하다</h3>
+      <p>
+        <a href="https://arxiv.org/html/2604.23001v1">Vision-Language-Action in Robotics</a> 서베이는 VLA 연구를
+        datasets, benchmarks, data engines라는 세 축으로 정리한다<a href="#ref3">[3]</a>. 이 관점에서는 모델 크기보다 중요한 문제가 있다.
+        로봇이 학습할 수 있는 형태로 물리 세계의 데이터를 어떻게 바꾸는가이다.
+      </p>
+      <p>
+        인터넷 비디오, egocentric video, 사람의 동작, 시뮬레이션 rollout은 모두 풍부한 행동 정보를 포함한다. 그러나 대부분은 로봇의 joint command,
+        gripper state, reward, task success label을 갖고 있지 않다. 따라서 다음 단계의 핵심은 데이터를 더 많이 모으는 것만이 아니라,
+        비정형 행동 데이터를 로봇 학습 가능한 supervision으로 변환하는 것이다.
+      </p>
+
+      <h3>5.3 VLA와 world model만으로도 부족하다</h3>
+      <p>
+        <a href="https://arxiv.org/abs/2606.06556">Robots Need More than VLA and World Models</a>는 제목 그대로 강한 주장을 편다
+        <a href="#ref20">[20]</a>. 이 논문은 일반 로봇 지능의 병목이 policy learning 하나가 아니라고 본다. 세계에는 방대한 비정형 행동 데이터가 있지만,
+        그것을 로봇에게 쓸 수 있는 supervision으로 바꾸는 mechanism이 부족하다는 것이다.
+      </p>
+      <p>
+        이 논문은 다음 네 가지 interface를 제안한다.
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th>Interface</th>
+            <th>역할</th>
+            <th>해결하려는 병목</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Data interface</td>
+            <td>비정형 행동 데이터를 자동 라벨링하고 로봇 학습 데이터로 변환한다.</td>
+            <td>Robot demonstration의 비용과 규모 한계</td>
+          </tr>
+          <tr>
+            <td>Embodiment interface</td>
+            <td>사람 동작이나 다른 로봇의 행동을 목표 로봇의 행동 공간으로 retargeting한다.</td>
+            <td>Embodiment gap</td>
+          </tr>
+          <tr>
+            <td>World-model interface</td>
+            <td>물리적으로 grounded된 3D reasoning과 미래 예측을 제공한다.</td>
+            <td>Reactive policy의 선견성 부족</td>
+          </tr>
+          <tr>
+            <td>Reward interface</td>
+            <td>비디오와 언어에서 task progress, success, failure, safety를 추론한다.</td>
+            <td>Long-horizon learning과 self-improvement의 평가 문제</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="agenda">
+      <h2>7. Embodied Robot을 위한 연구 의제</h2>
+      <p>
+        지금의 흐름을 종합하면, 궁극적 embodied robot은 하나의 거대한 end-to-end network를 단순히 키운다고 만들어지지 않는다.
+        필요한 것은 물리 세계와 지속적으로 접속하는 학습 체계이다. 이 체계는 적어도 다음 여섯 조건을 만족해야 한다.
+      </p>
+
+      <h3>6.1 의미 이해와 행동 생성을 결합해야 한다</h3>
+      <p>
+        로봇은 언어 지시를 이해해야 한다. 물체 이름, 장소, 관계, 암묵적 목표를 해석해야 한다. 이 점에서 VLA는 필수이다.
+        그러나 VLA는 planner 또는 policy로 이해해야 한다. 그것은 세계가 어떻게 변할지에 대한 충분한 모델을 자동으로 포함하지 않는다.
+      </p>
+
+      <h3>6.2 행동 결과를 예측해야 한다</h3>
+      <p>
+        로봇이 컵을 집을 때 중요한 것은 “컵이라는 단어를 안다”는 사실이 아니다. 어느 방향에서 접근하면 미끄러지는지, 어느 힘을 넘으면 넘어지는지,
+        장애물과 충돌하지 않는지, 실패했을 때 어떤 회복 행동이 가능한지를 알아야 한다. 이 영역이 simulator의 영역이다.
+      </p>
+
+      <h3>6.3 시각적 생성은 물리적 예측과 구별되어야 한다</h3>
+      <p>
+        현실적인 비디오를 생성하는 능력은 중요하다. 그것은 데이터 생성, future observation, human inspection, virtual training에 쓰인다.
+        그러나 시각적으로 그럴듯한 장면과 물리적으로 올바른 상태 변화는 다르다. Renderer의 성공이 곧 simulator의 성공은 아니다.
+      </p>
+
+      <h3>6.4 데이터는 로봇 demonstration 바깥에서 와야 한다</h3>
+      <p>
+        로봇 teleoperation만으로는 충분한 규모와 다양성을 얻기 어렵다. 인간 행동 비디오, 1인칭 영상, 시뮬레이션, 실패 로그, 배포 후 상호작용이
+        모두 학습 재료가 되어야 한다. 문제는 이것들이 곧바로 행동 라벨이 아니라는 점이다. 따라서 data interface와 reward interface가 필요하다.
+      </p>
+
+      <h3>6.5 Embodiment를 추상화해야 한다</h3>
+      <p>
+        사람의 손, Franka arm, ALOHA, 휴머노이드, 이동 조작 로봇은 서로 다른 신체를 가진다. 동일한 “문을 연다”라는 과제도 action space는 완전히 다르다.
+        그러므로 로봇 지능은 특정 joint trajectory에만 묶여서는 안 된다. 접촉, affordance, object-centric state, skill primitive, retargetable motion representation이 필요하다.
+      </p>
+
+      <h3>6.6 배포 후 자기개선 루프가 있어야 한다</h3>
+      <p>
+        실제 로봇은 실험실 밖에서 실패한다. 실패를 수집하고, world model 안에서 counterfactual rollout을 만들고, reward model로 성공 가능성을 평가하며,
+        policy를 다시 학습하는 루프가 있어야 한다. 이 루프가 없으면 로봇은 정적인 벤치마크에서는 좋아 보여도 실제 환경의 분포 변화에 약하다.
+      </p>
+    </section>
+
+    <section id="architecture">
+      <h2>8. 가능한 시스템 구조</h2>
+      <p>
+        현재 문헌을 바탕으로 가장 설득력 있는 구조는 단일 계층의 monolithic agent가 아니라, 계층적이고 폐루프적인 robot foundation system이다.
+        이 구조는 다음과 같이 표현할 수 있다.
+      </p>
+
+      <div class="flow">
+        <div>
+          <strong>1. Semantic Layer</strong>
+          언어 지시, 장면 이해, 목표 분해를 담당한다. VLM/VLA가 이 층의 중심이다.
+        </div>
+        <div>
+          <strong>2. World Layer</strong>
+          상태, 물체, 접촉, 미래 관측을 예측한다. World model 또는 WAM이 이 층을 담당한다.
+        </div>
+        <div>
+          <strong>3. Action Layer</strong>
+          행동 chunk, skill primitive, continuous control을 생성한다. VLA action head, diffusion policy, flow policy가 여기에 놓인다.
+        </div>
+        <div>
+          <strong>4. Control Layer</strong>
+          실제 하드웨어 안정성, collision avoidance, force control, safety constraint를 처리한다.
+        </div>
+      </div>
+
+      <p>
+        여기에 data engine과 deployment loop가 붙는다. 로봇은 실제 환경에서 실패와 성공을 기록하고, 그 기록은 다시 reward model, world model,
+        policy 학습으로 들어간다. 이 점에서 embodied robot은 한 번 학습된 모델이라기보다, 세계와 계속 상호작용하며 갱신되는 시스템에 가깝다.
+      </p>
+
+      <div class="note">
+        <strong>최종 정리.</strong>
+        Renderer는 세계를 보이게 한다. Simulator는 세계의 변화를 예측한다. Planner는 행동을 고른다.
+        VLA는 주로 planner이다. World model은 주로 simulator이다. WAM은 이 둘을 결합하려는 현재의 대표적 흐름이다.
+        궁극적 embodied robot은 여기에 data interface, embodiment interface, reward interface, low-level control, deployment feedback loop를 더해야 한다.
+      </div>
+    </section>
+
+    <section id="recap">
+      <h2>9. 종합 정리: VLA와 World Model 이후의 문제</h2>
+      <p>
+        이제 전체 논의를 다시 묶어 보자. Fei-Fei Li식 기능 분류는 world model 논의를 세 역할로 분해한다.
+        Renderer는 내부 상태를 관측으로 만든다. Simulator는 행동에 따른 상태 변화를 예측한다. Planner는 목표에 맞는 행동을 고른다.
+        수학적으로는 이 세 역할이 하나의 내부 상태 공간 <code>Z</code> 위에서 각각 <code>R</code>, <code>F</code>, <code>Π</code>라는 연산으로 정의된다.
+        이때 핵심은 <code>Z</code>가 단순히 예쁜 영상을 만들기 위한 latent가 아니라, 관측 가능하고, 시간적으로 전개 가능하고, 행동 선택에 쓸 수 있는
+        예측적 표현이어야 한다는 점이다.
+      </p>
+      <p>
+        VLA는 이 체계에서 주로 planner 또는 policy interface의 위치에 놓인다. 그것은 이미지와 언어를 받아 행동을 출력한다.
+        그러나 VLA가 강력하다고 해서 물리 세계의 모든 문제가 해결되지는 않는다. VLA가 학습하는 데이터는 대개 이미 로봇 행동, task label,
+        success signal이 붙어 있는 robot-native supervision이다. 이 데이터는 매우 유용하지만, 바로 그 이유 때문에 스케일링 한계를 갖는다.
+        세상에 존재하는 대부분의 물리적 경험은 로봇 학습 좌표계로 정리되어 있지 않기 때문이다.
+      </p>
+      <p>
+        <a href="https://arxiv.org/abs/2606.06556">Robots Need More than VLA and World Models</a>는 바로 이 점을 결론으로 밀어붙인다
+        <a href="#ref20">[20]</a>. 저자들의 주장은 “더 큰 VLA”도 아니고 “더 사실적인 video world model”도 아니다.
+        병목은 물리 세계의 거대한 행동 데이터를 로봇이 사용할 수 있는 supervision으로 바꾸는 <strong>grounding pipeline</strong>의 부재이다.
+        인간의 행동, 인터넷 비디오, wearable sensing, simulation rollout, robot failure trace에는 task, contact, goal, failure, physical constraint에 관한 정보가 들어 있다.
+        그러나 이 정보는 보통 robot action, reward, embodiment constraint, task phase, success explanation으로 주어지지 않는다.
+      </p>
+      <p>
+        따라서 논문이 제안하는 차세대 로봇 지능의 구조는 다음과 같은 순환 구조이다.
+      </p>
+      <span class="formula">
+        physical experience<br>
+        -> embodied autolabelling<br>
+        -> task-preserving retargeting<br>
+        -> physics-grounded world model<br>
+        -> task-conditioned reward grounding<br>
+        -> VLA / robot policy<br>
+        -> deployment<br>
+        -> failure, correction, success trace<br>
+        -> 다시 physical data engine으로
+      </span>
+      <p>
+        이 순환 구조에서 renderer, simulator, planner의 의미도 더 분명해진다. Renderer는 관측을 만들고 데이터를 확장하는 데 기여한다.
+        Simulator는 action의 물리적 결과를 예측하고 counterfactual experience를 제공한다. Planner 또는 VLA는 그 예측과 목표를 바탕으로 행동을 선택한다.
+        그러나 이것만으로도 충분하지 않다. 실제 embodied robot에는 data interface, embodiment interface, reward interface가 필요하다.
+        즉 세계를 보는 모델, 세계를 예측하는 모델, 행동을 고르는 모델에 더해, 세계의 물리적 경험을 로봇 학습의 언어로 번역하는 장치가 필요하다.
+      </p>
+      <div class="note">
+        <strong>마지막 명제.</strong>
+        궁극적 embodied robot은 하나의 거대한 VLA도 아니고, 하나의 아름다운 video world model도 아니다.
+        그것은 물리 경험을 object state, contact, latent action, reward, failure explanation, executable action으로 변환하고,
+        그 변환을 실제 배포 루프에서 계속 갱신하는 폐루프 학습 시스템이다.
+      </div>
+    </section>
+
+    <section id="return">
+      <h2>10. Probabilistic Robotics로의 귀환</h2>
+      <p>
+        여기서 한 가지 역사적 관찰을 덧붙일 필요가 있다. 지금까지의 논의를 천천히 따라오면, 최신 용어들이 전혀 새로운 문제를 발명했다기보다
+        고전 로보틱스가 오래전에 정식화했던 문제로 되돌아가고 있음을 보게 된다. Sebastian Thrun, Wolfram Burgard, Dieter Fox의
+        <a href="https://mitpress.mit.edu/9780262201629/probabilistic-robotics/">Probabilistic Robotics</a>는
+        로봇을 불확실성 아래에서 지각하고 행동하는 시스템으로 정식화했다<a href="#ref23">[23]</a>. 그 책의 언어로 핵심 문제를 쓰면 다음과 같다.
+      </p>
+      <span class="formula">
+        belief update: b_t = p(x_t | z_{1:t}, u_{1:t})<br>
+        transition model: p(x_{t+1} | x_t, u_t)<br>
+        observation model: p(z_t | x_t)<br>
+        planning/control: π(b_t, g) -> u_t
+      </span>
+      <p>
+        이 수식은 앞 절의 renderer, simulator, planner와 거의 일대일로 대응한다.
+        Renderer는 observation model <code>p(z_t | x_t)</code>에 가깝고, simulator는 transition model
+        <code>p(x_{t+1} | x_t, u_t)</code>에 해당하며, planner는 belief 또는 state를 입력으로 받아 행동을 고르는 policy/control 문제이다.
+        우리가 앞에서 쓴 <code>R</code>, <code>F</code>, <code>Π</code>는 사실 이 고전적 분해를 foundation model 시대의 언어로 다시 쓴 것이다.
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th>고전 Probabilistic Robotics</th>
+            <th>최근 World Model / VLA 용어</th>
+            <th>의미</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>State 또는 belief <code>x_t, b_t</code></td>
+            <td>Latent world state, belief state, scene representation</td>
+            <td>로봇이 세계에 대해 현재 가지고 있는 추정 또는 압축 표현</td>
+          </tr>
+          <tr>
+            <td>Observation model <code>p(z_t | x_t)</code></td>
+            <td>Renderer, decoder, generative observation model</td>
+            <td>내부 상태가 어떤 관측으로 나타나는지 설명하는 모델</td>
+          </tr>
+          <tr>
+            <td>Motion/transition model <code>p(x_{t+1} | x_t, u_t)</code></td>
+            <td>Simulator, dynamics model, action-conditioned world model</td>
+            <td>행동이 세계 상태를 어떻게 바꾸는지 예측하는 모델</td>
+          </tr>
+          <tr>
+            <td>POMDP planning, control, policy</td>
+            <td>Planner, VLA, WAM policy head</td>
+            <td>불완전한 관측과 목표 아래에서 행동을 선택하는 절차</td>
+          </tr>
+          <tr>
+            <td>Reward, utility, task objective</td>
+            <td>Reward grounding, task progress model, deployment feedback</td>
+            <td>어떤 상태 변화가 과제의 성공 또는 실패를 뜻하는지 해석하는 기준</td>
+          </tr>
+        </tbody>
+      </table>
+      <p>
+        그러므로 “회귀”라는 표현은 상당히 정확하다. 다만 단순한 반복은 아니다. 고전 로보틱스에서는 상태 변수와 센서 모델, 동역학 모델을 사람이 비교적 명시적으로 설계했다.
+        로봇 pose, landmark, occupancy grid, map, range sensor model, odometry noise model 같은 것들이 그 예이다.
+        반면 현재의 foundation robotics는 그 변수들 자체를 대규모 데이터에서 학습하려 한다. 상태 공간 <code>Z</code>가 무엇인지,
+        관측 모델 <code>R</code>이 무엇을 보존해야 하는지, transition operator <code>F</code>가 어떤 물리량을 예측해야 하는지,
+        reward가 어떤 task progress를 뜻하는지를 모두 학습과 grounding의 문제로 다시 열어 놓은 것이다.
+      </p>
+      <p>
+        이 흐름은 대략 다음과 같이 볼 수 있다.
+      </p>
+      <span class="formula">
+        고전 로보틱스: 명시적 state + 명시적 확률모델 + planning<br>
+        2010년대 deep learning: end-to-end perception/control, representation learning<br>
+        2020년대 foundation robotics: perception, language, action의 대규모 결합<br>
+        2025년 이후: belief, dynamics, observation, reward, grounding으로의 귀환
+      </span>
+      <p>
+        여기서 흥미로운 점은, deep learning이 고전적 확률 로보틱스를 폐기했다기보다 잠시 우회했다는 사실이다.
+        End-to-end 모델은 명시적 상태 추정과 모델 기반 제어를 덜 보이게 만들었다. 그러나 로봇이 실제 물리 세계에서 장기적으로 행동해야 하는 순간,
+        다시 불확실성, 부분 관측, 동역학, 관측 모델, 보상 해석, 배포 후 실패 학습의 문제가 돌아온다.
+        물리 세계에서 행동하는 agent의 수학은 이 중력장을 쉽게 벗어나지 못한다.
+      </p>
+      <p>
+        이 관점에서 최신 VLA/WAM/world model 논의의 진짜 새로움은 고전적 구조를 버린 데 있지 않다.
+        새로움은 그 구조의 각 항을 사람이 손으로 설계하지 않고, 인터넷 비디오, 로봇 demonstration, human motion, 시뮬레이션, deployment trace에서 학습하려는 데 있다.
+        즉 과거의 질문은 “주어진 state와 sensor model에서 어떻게 추정하고 계획할 것인가”였다면, 현재의 질문은 다음과 같이 바뀌었다.
+      </p>
+      <ul>
+        <li><code>x</code> 또는 <code>Z</code>는 무엇이어야 하는가?</li>
+        <li>이미지, 비디오, language, tactile signal은 어떤 observation model로 연결되어야 하는가?</li>
+        <li>사람의 영상에서 action 또는 latent transition code를 어떻게 추출할 것인가?</li>
+        <li>다른 embodiment로 옮겨도 보존되어야 하는 task-relevant effect는 무엇인가?</li>
+        <li>reward와 failure explanation은 누가, 어떤 표현 위에서 붙이는가?</li>
+      </ul>
+      <div class="note">
+        <strong>해석.</strong>
+        Probabilistic Robotics가 틀린 것이 아니라, 그 책의 변수들을 사람이 손으로 정하던 시대가 지나가고 있다.
+        지금의 world model, VLA, WAM 연구는 그 변수, 상태공간, 관측모델, 동역학, reward grounding을 foundation-scale data로 다시 배우려는 시도이다.
+        따라서 최신 흐름은 단절이라기보다, 고전적 확률 로보틱스의 문제의식을 learned representation과 대규모 데이터의 시대에 다시 호출하는 과정이다.
+      </div>
+    </section>
+
+    <section id="refs" class="refs">
+      <h2>참고문헌</h2>
+      <ol>
+        <li id="ref1">Fei-Fei Li and World Labs, <a href="https://drfeifei.substack.com/p/a-functional-taxonomy-of-world-models">A Functional Taxonomy of World Models</a>, 2026.</li>
+        <li id="ref2">Yue Ma et al., <a href="https://arxiv.org/abs/2405.14093">A Survey on Vision-Language-Action Models for Embodied AI</a>, arXiv:2405.14093.</li>
+        <li id="ref3">Ziyao Wang et al., <a href="https://arxiv.org/html/2604.23001v1">Vision-Language-Action in Robotics: A Survey of Datasets, Benchmarks, and Data Engines</a>, arXiv:2604.23001.</li>
+        <li id="ref4">Yifan Zhong et al., <a href="https://www.semanticscholar.org/paper/A-Survey-on-Vision-Language-Action-Models%3A-An-Zhong-Bai/2560c4cfbbdc625b07d4ede3734684a68ac1785e">A Survey on Vision-Language-Action Models: An Action Tokenization Perspective</a>, arXiv:2507.01925.</li>
+        <li id="ref5">Anthony Brohan et al., <a href="https://proceedings.mlr.press/v229/zitkovich23a.html">RT-2: Vision-Language-Action Models Transfer Web Knowledge to Robotic Control</a>, CoRL 2023.</li>
+        <li id="ref6">Moo Jin Kim et al., <a href="https://arxiv.org/abs/2406.09246">OpenVLA: An Open-Source Vision-Language-Action Model</a>, arXiv:2406.09246.</li>
+        <li id="ref7">Kevin Black et al., <a href="https://arxiv.org/abs/2410.24164">π₀: A Vision-Language-Action Flow Model for General Robot Control</a>, arXiv:2410.24164.</li>
+        <li id="ref8">OpenAI, <a href="https://openai.com/index/video-generation-models-as-world-simulators/">Video Generation Models as World Simulators</a>, 2024.</li>
+        <li id="ref9">Google DeepMind, <a href="https://deepmind.google/models/veo/">Veo</a>.</li>
+        <li id="ref10">World Labs, <a href="https://www.worldlabs.ai/blog/marble-world-model">Marble: A Multimodal World Model</a>, 2025.</li>
+        <li id="ref11">Google DeepMind, <a href="https://deepmind.google/blog/genie-2-a-large-scale-foundation-world-model/">Genie 2: A Large-Scale Foundation World Model</a>, 2024.</li>
+        <li id="ref12">Google DeepMind, <a href="https://deepmind.google/blog/genie-3-a-new-frontier-for-world-models/">Genie 3: A New Frontier for World Models</a>, 2025.</li>
+        <li id="ref13">NVIDIA et al., <a href="https://arxiv.org/abs/2511.00062">World Simulation with Video Foundation Models for Physical AI</a>, arXiv:2511.00062.</li>
+        <li id="ref14">Danijar Hafner et al., <a href="https://www.nature.com/articles/s41586-025-08744-2">Mastering Diverse Control Tasks through World Models</a>, Nature, 2025.</li>
+        <li id="ref15">Siyin Wang et al., <a href="https://arxiv.org/abs/2605.12090">World Action Models: The Next Frontier in Embodied AI</a>, arXiv:2605.12090.</li>
+        <li id="ref16">NVIDIA, <a href="https://www.nvidia.com/en-us/glossary/world-action-model/">What Is a World Action Model?</a>, including DreamZero discussion.</li>
+        <li id="ref17">Tianyuan Yuan et al., <a href="https://arxiv.org/html/2603.16666v2">Fast-WAM: Do World Action Models Need Test-time Future Imagination?</a>, arXiv:2603.16666.</li>
+        <li id="ref18">Authors, <a href="https://arxiv.org/html/2605.06481v1">OA-WAM: Object-Addressable World Action Model for Robust Robot Manipulation</a>, arXiv:2605.06481.</li>
+        <li id="ref19">Authors, <a href="https://arxiv.org/html/2603.22078v3">Do World Action Models Generalize Better than VLAs? A Robustness Study</a>, arXiv:2603.22078.</li>
+        <li id="ref20">Elis Karcini et al., <a href="https://arxiv.org/abs/2606.06556">Robots Need More than VLA and World Models</a>, arXiv:2606.06556.</li>
+        <li id="ref21">World Labs, <a href="https://www.worldlabs.ai/">World Labs</a>, company and research overview.</li>
+        <li id="ref22">OpenReview, <a href="https://openreview.net/forum?id=qE2FyvRvuF">WMPO: World-Model-based Policy Optimization for Vision-Language-Action Models</a>, ICLR 2026.</li>
+        <li id="ref23">Sebastian Thrun, Wolfram Burgard, Dieter Fox, <a href="https://mitpress.mit.edu/9780262201629/probabilistic-robotics/">Probabilistic Robotics</a>, MIT Press, 2005.</li>
+      </ol>
+      <p class="small">
+        참고문헌에는 대화 중 직접 언급한 논문, 서베이, 연구 보고서, 기술 블로그, 공식 모델 페이지를 포함했다. 일부 항목은 공식 논문 페이지가 아니라 프로젝트 페이지 또는 기관 설명 페이지이다.
+      </p>
+    </section>
+  </main>
+</body>
+</html>

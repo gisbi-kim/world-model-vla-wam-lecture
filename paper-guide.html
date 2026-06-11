@@ -1,0 +1,710 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>VLA, World Model, WAM 자료 해설</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #1d2430;
+      --muted: #5f6875;
+      --line: #d7dce3;
+      --paper: #ffffff;
+      --wash: #f4f6f8;
+      --accent: #165d8f;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--wash);
+      color: var(--ink);
+      font-family: "Noto Sans KR", "Malgun Gothic", "Apple SD Gothic Neo", Arial, sans-serif;
+      line-height: 1.62;
+    }
+    main {
+      width: min(920px, calc(100% - 32px));
+      margin: 28px auto;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      padding: 34px 42px 38px;
+    }
+    header {
+      border-bottom: 2px solid var(--ink);
+      padding-bottom: 14px;
+      margin-bottom: 18px;
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: 26px;
+      line-height: 1.25;
+      letter-spacing: 0;
+    }
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    p {
+      margin: 0 0 12px;
+      font-size: 15px;
+    }
+    a {
+      color: var(--accent);
+      text-decoration-thickness: 1px;
+      text-underline-offset: 2px;
+    }
+    .note {
+      margin: 18px 0 20px;
+      padding: 12px 14px;
+      border-left: 4px solid var(--accent);
+      background: #eef5fa;
+      font-size: 14px;
+    }
+    nav {
+      margin: 20px 0 28px;
+      padding: 14px 16px;
+      border: 1px solid var(--line);
+      background: #fafbfc;
+    }
+    nav a {
+      display: inline-block;
+      margin: 0 10px 7px 0;
+      font-size: 12.5px;
+      white-space: nowrap;
+    }
+    .order-map {
+      margin: 20px 0 28px;
+      padding: 16px;
+      border: 1px solid var(--line);
+      background: #fbfcfd;
+    }
+    .order-map h2 {
+      margin-top: 0;
+    }
+    .order-chips {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+    }
+    .order-chip {
+      display: inline-flex;
+      align-items: center;
+      min-height: 32px;
+      padding: 5px 9px;
+      border: 1px solid #bcc7d3;
+      border-radius: 6px;
+      background: white;
+      color: var(--accent);
+      font-size: 12.5px;
+      font-weight: 700;
+      text-decoration: none;
+      line-height: 1.25;
+    }
+    .order-arrow {
+      color: #6b7480;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 18px 0 10px;
+    }
+    .tabs button {
+      appearance: none;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: white;
+      color: var(--ink);
+      font: inherit;
+      font-size: 13px;
+      padding: 7px 11px;
+      cursor: pointer;
+    }
+    .tabs button[aria-selected="true"] {
+      border-color: var(--accent);
+      background: #eef5fa;
+      color: var(--accent);
+      font-weight: 700;
+    }
+    .mode-note {
+      margin: 0 0 18px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    h2 {
+      margin: 24px 0 10px;
+      font-size: 17px;
+      line-height: 1.35;
+      letter-spacing: 0;
+    }
+    h3 {
+      margin: 0 0 9px;
+      font-size: 18px;
+      line-height: 1.38;
+      letter-spacing: 0;
+    }
+    .paper {
+      border-top: 1px solid var(--line);
+      padding: 24px 0 20px;
+    }
+    .transition {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 10px;
+      align-items: start;
+      margin: 0;
+      padding: 12px 14px;
+      border-top: 1px solid var(--line);
+      background: #fbfcfd;
+      color: var(--muted);
+      font-size: 13.5px;
+    }
+    .transition b {
+      color: var(--accent);
+      font-size: 14px;
+      white-space: nowrap;
+    }
+    .paper-label {
+      display: inline-block;
+      margin-left: 8px;
+      padding: 2px 7px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--muted);
+      font-size: 11.5px;
+      font-weight: 400;
+      vertical-align: 2px;
+    }
+    .paper-meta {
+      margin: 0 0 10px;
+      color: var(--muted);
+      font-size: 12.5px;
+    }
+    .paper p {
+      font-size: 14.5px;
+    }
+    .message {
+      margin: 13px 0 0;
+      padding: 10px 12px;
+      border-left: 3px solid var(--ink);
+      background: #f7f8fa;
+      font-size: 14px;
+    }
+    .message strong {
+      display: inline-block;
+      margin-right: 4px;
+    }
+    .diagram {
+      margin: 18px 0 24px;
+      padding: 18px;
+      border: 1px solid var(--line);
+      background: #fbfcfd;
+      overflow-x: auto;
+    }
+    .diagram svg {
+      display: block;
+      min-width: 760px;
+      width: 100%;
+      height: auto;
+    }
+    .diagram text {
+      font-family: "Noto Sans KR", "Malgun Gothic", Arial, sans-serif;
+      fill: var(--ink);
+    }
+    .diagram .box {
+      fill: white;
+      stroke: #9aa6b2;
+      stroke-width: 1.2;
+    }
+    .diagram .core {
+      fill: #eef5fa;
+      stroke: var(--accent);
+      stroke-width: 1.5;
+    }
+    .diagram .arrow {
+      stroke: #586575;
+      stroke-width: 1.4;
+      fill: none;
+      marker-end: url(#arrow);
+    }
+    ol {
+      margin: 0;
+      padding-left: 24px;
+      columns: 2;
+      column-gap: 34px;
+      font-size: 12.5px;
+      line-height: 1.45;
+    }
+    li {
+      break-inside: avoid;
+      margin: 0 0 7px;
+    }
+    .tag {
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    @media print {
+      body { background: white; }
+      main {
+        width: 100%;
+        margin: 0;
+        border: 0;
+        padding: 16mm 17mm;
+      }
+      a { color: black; text-decoration: none; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>VLA, World Model, WAM: 현재 자료들의 공통 논지</h1>
+      <p class="subtitle">다운로드된 PDF 17개와 PDF가 없는 공식 웹 자료 4개를 함께 읽기 위한 반쪽 분량 해설</p>
+    </header>
+
+    <p>
+      이 자료군의 중심축은 “로봇 지능을 단순한 행동 생성기로 볼 것인가, 아니면 세계를 예측하며 행동하는 체계로 볼 것인가”라는 문제다. Fei-Fei Li와 World Labs의 기능적 분류는 이를 renderer, simulator, planner로 나눈다[18]. Renderer는 관측을 만든다. Sora와 Veo, Genie 계열은 장면을 시각적으로 생성하거나 상호작용 가능한 환경을 제시한다[17][19][20][21]. 그러나 시각적 충실도만으로는 충분하지 않다. 로봇에게 필요한 것은 “보이는 세계”가 아니라 “행동했을 때 변하는 세계”다.
+    </p>
+
+    <p>
+      Simulator 계열은 그 지점에서 중요해진다. Genie, Cosmos, DreamerV3, world model survey들은 action-conditioned future, dynamics, reward, policy evaluation을 핵심 기능으로 본다[1][2][3][14]. 즉 세계 모델은 예쁜 비디오 생성기가 아니라 정책 학습과 계획을 지탱하는 예측 환경이어야 한다. 반면 RT-2, OpenVLA, π0, Diffusion Policy, ACT는 관측과 언어에서 행동을 산출하는 planner 또는 policy의 흐름에 놓인다[4][5][6][7][8]. 이들은 의미 일반화와 행동 생성에서 강하지만, 실패 예측, 접촉 동역학, 장기 계획에서는 독립적인 세계 예측 능력이 필요하다.
+    </p>
+
+    <p>
+      2026년 이후의 WAM 논문들은 바로 이 둘의 결합을 명시한다. DreamZero, Fast-WAM, OA-WAM, WAM survey, WMPO는 VLA를 reactive policy로만 두지 않고, 미래 상태와 행동을 함께 모델링하거나 imagined rollout 안에서 정책을 개선하려 한다[9][10][11][12][13]. 최신 서베이들은 여기에 데이터 엔진, embodiment retargeting, reward interface, evaluation protocol을 더한다[15][16]. 따라서 현재의 큰 흐름은 더 큰 VLA 하나를 만드는 것이 아니라, renderer가 관측을 만들고 simulator가 물리적 변화를 예측하며 planner가 행동을 고르는 닫힌 루프를 구축하는 것이다.
+    </p>
+
+    <div class="note">
+      요약하면, 궁극적인 embodied robot은 VLA, world model, WAM 중 하나의 승자가 아니라, 의미 이해, 물리 예측, 행동 생성, 보상 평가, 실제 배포 데이터를 하나의 학습 루프로 묶는 계층형 시스템에 가깝다.
+    </div>
+
+    <h2>읽기 순서 모드</h2>
+    <p>
+      현재 기본 순서는 시간순도, 단순 분류순도 아니다. 먼저 world model의 감각을 잡고, VLA/policy 계열로 내려간 뒤, WAM과 최신 서베이로 다시 종합하는 <strong>추천 읽기순</strong>이다. 이 순서는 “세계 생성 → 행동 생성 → 세계 예측을 품은 행동”이라는 개념의 이동을 따라가도록 설계했다. 아래 탭을 누르면 같은 21개 자료를 시간순 또는 분류순으로 다시 볼 수 있다.
+    </p>
+    <div class="tabs" role="tablist" aria-label="자료 정렬 모드">
+      <button type="button" data-mode="recommended" aria-selected="true">추천 읽기순</button>
+      <button type="button" data-mode="time" aria-selected="false">시간순</button>
+      <button type="button" data-mode="taxonomy" aria-selected="false">분류순</button>
+    </div>
+    <p class="mode-note" id="mode-note">추천 읽기순: 개념적 발판을 먼저 놓고, 정책 모델을 본 뒤, WAM과 최신 종합 논문으로 마무리한다.</p>
+
+    <h2>논문 사이 관계도</h2>
+    <div class="diagram" aria-label="VLA, world model, WAM 자료 관계도">
+      <svg viewBox="0 0 960 430" role="img">
+        <defs>
+          <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#586575"></path>
+          </marker>
+        </defs>
+        <rect class="core" x="365" y="18" width="230" height="54" rx="8"></rect>
+        <text x="480" y="42" text-anchor="middle" font-size="15" font-weight="700">Functional Taxonomy</text>
+        <text x="480" y="60" text-anchor="middle" font-size="11">renderer · simulator · planner</text>
+
+        <rect class="box" x="32" y="120" width="250" height="88" rx="8"></rect>
+        <text x="157" y="144" text-anchor="middle" font-size="15" font-weight="700">Renderer / Video World Prior</text>
+        <text x="157" y="166" text-anchor="middle" font-size="12">Sora · Veo 3 · Genie 2/3</text>
+        <text x="157" y="184" text-anchor="middle" font-size="12">시각적 관측과 상호작용 장면 생성</text>
+
+        <rect class="box" x="355" y="120" width="250" height="88" rx="8"></rect>
+        <text x="480" y="144" text-anchor="middle" font-size="15" font-weight="700">Simulator / World Model</text>
+        <text x="480" y="166" text-anchor="middle" font-size="12">Genie · Cosmos · DreamerV3</text>
+        <text x="480" y="184" text-anchor="middle" font-size="12">action-conditioned future와 dynamics</text>
+
+        <rect class="box" x="678" y="120" width="250" height="88" rx="8"></rect>
+        <text x="803" y="144" text-anchor="middle" font-size="15" font-weight="700">Planner / Policy</text>
+        <text x="803" y="166" text-anchor="middle" font-size="12">RT-2 · OpenVLA · π0 · ACT</text>
+        <text x="803" y="184" text-anchor="middle" font-size="12">관측과 언어를 실행 가능한 행동으로 변환</text>
+
+        <rect class="core" x="275" y="278" width="410" height="82" rx="10"></rect>
+        <text x="480" y="304" text-anchor="middle" font-size="16" font-weight="700">WAM / Robot Foundation System</text>
+        <text x="480" y="327" text-anchor="middle" font-size="12">WMPO · DreamZero · Fast-WAM · OA-WAM · WAM Survey</text>
+        <text x="480" y="346" text-anchor="middle" font-size="12">미래 예측과 action generation을 결합하는 폐루프</text>
+
+        <rect class="box" x="710" y="286" width="210" height="66" rx="8"></rect>
+        <text x="815" y="312" text-anchor="middle" font-size="14" font-weight="700">System Interfaces</text>
+        <text x="815" y="333" text-anchor="middle" font-size="12">data · embodiment · reward · evaluation</text>
+
+        <path class="arrow" d="M 480 72 L 480 112"></path>
+        <path class="arrow" d="M 480 72 C 340 82, 210 92, 157 116"></path>
+        <path class="arrow" d="M 480 72 C 620 82, 750 92, 803 116"></path>
+        <path class="arrow" d="M 282 164 L 348 164"></path>
+        <path class="arrow" d="M 605 164 L 671 164"></path>
+        <path class="arrow" d="M 480 208 L 480 270"></path>
+        <path class="arrow" d="M 803 208 C 780 255, 690 292, 686 313"></path>
+        <path class="arrow" d="M 710 319 L 693 319"></path>
+        <path class="arrow" d="M 157 208 C 200 265, 270 298, 276 319"></path>
+      </svg>
+    </div>
+
+    <section class="order-map" aria-label="선택 모드별 논문 순서">
+      <h2>선택 모드의 논문 순서</h2>
+      <div class="order-chips" id="order-chips"></div>
+    </section>
+
+    <h2>자료별 해설</h2>
+    <section id="paper-list">
+
+    <article class="paper" id="p1" data-recommended="1" data-date="2024-02" data-taxonomy="2">
+      <h3><a href="https://arxiv.org/pdf/2402.15391">1. Genie: Generative Interactive Environments</a></h3>
+      <p class="paper-meta">2024.02, Google DeepMind 계열, PDF</p>
+      <p>Genie는 인터넷 비디오에서 명시적 action label 없이 상호작용 가능한 환경을 학습하려는 시도다. 핵심은 “비디오 생성”을 단순한 재현 문제가 아니라, 사용자가 어떤 latent action을 취했을 때 다음 장면이 어떻게 변하는지를 예측하는 문제로 바꾸는 데 있다. 이 때문에 Genie는 renderer와 simulator의 경계에 걸쳐 있다. 화면을 생성한다는 점에서는 renderer이지만, 사용자가 프레임 단위로 개입할 수 있다는 점에서는 world model의 초기 형태를 보인다.</p>
+      <p>이 자료의 중요한 메시지는 로봇 데이터가 직접 주어지지 않아도, 인터넷 비디오가 행동 가능한 세계 지식을 담고 있을 수 있다는 것이다. 다만 Genie의 action은 실제 로봇 joint command가 아니라 학습된 latent action이다. 따라서 embodied robot으로 바로 연결하려면 latent action을 실제 embodiment의 제어 명령으로 옮기는 인터페이스가 필요하다.</p>
+      <div class="message"><strong>결론과 함의:</strong> Genie는 “비디오를 보는 모델”에서 “비디오 안에서 행동할 수 있는 모델”로 넘어가는 출발점이다. 연구적으로는 비디오 기반 world model, latent action discovery, robot supervision 자동 생성의 기반 자료로 읽어야 한다.</div>
+    </article>
+
+    <article class="paper" id="p2" data-recommended="2" data-date="2025-01" data-taxonomy="2">
+      <h3><a href="https://arxiv.org/pdf/2501.03575">2. Cosmos World Foundation Model Platform for Physical AI</a></h3>
+      <p class="paper-meta">2025.01, NVIDIA, PDF</p>
+      <p>Cosmos는 physical AI를 위한 world foundation model platform을 표방한다. 이 자료는 하나의 모델 논문이라기보다, 비디오 큐레이션, 토크나이저, 사전학습 모델, 후속 fine-tuning을 묶어 실제 물리 AI 개발자가 사용할 수 있는 기반 구조를 제시한다. 목표는 로봇이나 자율주행 시스템이 현실에서 모든 실패를 겪어 보지 않고도, 생성된 세계 안에서 상황을 확장하고 평가하게 하는 것이다.</p>
+      <p>Cosmos의 관점에서 world model은 비디오 생성 모델과 디지털 트윈 사이에 있다. 단순히 아름다운 장면을 만드는 것이 아니라, downstream policy training, synthetic data generation, evaluation에 쓰일 수 있어야 한다. 이 지점에서 Cosmos는 renderer의 산업적 확장판이면서 simulator로 가기 위한 플랫폼이다.</p>
+      <div class="message"><strong>결론과 함의:</strong> Cosmos는 world model 연구가 논문 데모를 넘어 데이터 엔진과 개발 플랫폼의 문제로 이동하고 있음을 보여준다. 로봇 연구자는 모델 구조만이 아니라 데이터 파이프라인, 물리 일관성 평가, 시뮬레이션-현실 전이를 함께 설계해야 한다.</div>
+    </article>
+
+    <article class="paper" id="p3" data-recommended="3" data-date="2023-01" data-taxonomy="2">
+      <h3><a href="https://arxiv.org/pdf/2301.04104">3. Mastering Diverse Domains through World Models</a></h3>
+      <p class="paper-meta">2023.01, DreamerV3, PDF</p>
+      <p>DreamerV3는 world model을 이용한 강화학습의 대표적 성과다. 모델은 환경의 미래를 직접 상상하고, 그 상상된 trajectory 안에서 행동을 개선한다. 여기서 world model은 시각적 생성기가 아니라 policy optimization을 가능하게 하는 내부 환경이다. 에이전트는 실제 환경에서 얻은 경험을 압축해 dynamics model을 만들고, 그 안에서 보상과 미래 상태를 예측하며 정책을 학습한다.</p>
+      <p>DreamerV3가 중요한 이유는 “미래 예측이 곧 행동 학습의 매개”라는 논리를 매우 선명하게 보여주기 때문이다. VLA나 WAM 논문들이 로봇 영역에서 말하는 imagination, rollout, future prediction은 개념적으로 Dreamer 계열과 맞닿아 있다. 차이는 Dreamer가 주로 RL benchmark에서 작동했다면, 최근 흐름은 이 논리를 비디오, 언어, 로봇 action으로 확장한다는 데 있다.</p>
+      <div class="message"><strong>결론과 함의:</strong> DreamerV3는 simulator가 planner를 어떻게 도울 수 있는지 보여주는 기준점이다. embodied robot에서 world model이 필요한 이유는 더 그럴듯한 장면을 만들기 위해서가 아니라, 실제 시행착오를 줄이며 정책을 개선하기 위해서다.</div>
+    </article>
+
+    <article class="paper" id="p4" data-recommended="4" data-date="2023-07" data-taxonomy="3">
+      <h3><a href="https://arxiv.org/pdf/2307.15818">4. RT-2: Vision-Language-Action Models Transfer Web Knowledge to Robotic Control</a></h3>
+      <p class="paper-meta">2023.07, Google, PDF</p>
+      <p>RT-2는 VLA라는 명칭을 로봇 제어의 중심 어휘로 만든 대표적 논문이다. 인터넷 규모의 vision-language pretraining을 로봇 trajectory data와 함께 학습하여, 자연어 명령과 시각 입력을 robot action으로 변환한다. 중요한 설계는 robot action을 언어 token처럼 취급한다는 점이다. 그 결과 모델은 웹에서 배운 의미 지식과 로봇 데이터에서 배운 행동 지식을 같은 token prediction 구조 안에 넣는다.</p>
+      <p>RT-2의 장점은 semantic generalization이다. 새로운 물체, 개념적 명령, 간단한 추론 요구에 대해 기존 imitation policy보다 넓은 대응을 보인다. 그러나 이 모델은 세계가 앞으로 어떻게 변할지 명시적으로 시뮬레이션하지 않는다. 즉 Fei-Fei식 분류에서는 planner 또는 policy에 가깝다.</p>
+      <div class="message"><strong>결론과 함의:</strong> RT-2는 로봇이 언어와 시각 의미를 action으로 연결할 수 있음을 보였지만, reactive policy의 한계도 남겼다. 이후 WAM 흐름은 RT-2식 VLA 위에 “미래를 예측하는 층”을 붙이려는 시도로 이해할 수 있다.</div>
+    </article>
+
+    <article class="paper" id="p5" data-recommended="5" data-date="2024-06" data-taxonomy="3">
+      <h3><a href="https://arxiv.org/pdf/2406.09246">5. OpenVLA: An Open-Source Vision-Language-Action Model</a></h3>
+      <p class="paper-meta">2024.06, Stanford/UC Berkeley 등, PDF</p>
+      <p>OpenVLA는 VLA 연구에서 접근성과 재현성을 크게 끌어올린 자료다. 기존 VLA가 대체로 폐쇄형 시스템으로 발표되던 상황에서, OpenVLA는 7B 규모 모델, 공개 학습 코드, fine-tuning 방식, Open X-Embodiment 데이터 기반 학습을 통해 일반 연구자도 VLA를 실험할 수 있게 했다. 구조적으로는 vision encoder와 language model을 결합하고, 다양한 로봇 demonstration에서 action을 학습한다.</p>
+      <p>OpenVLA의 메시지는 “로봇 foundation model은 대형 연구소만의 폐쇄 자산이어서는 안 된다”는 데 있다. 동시에 논문은 fine-tuning, quantization, parameter-efficient adaptation 같은 실제 배포 문제도 함께 다룬다. 이는 VLA가 연구 아이디어에서 도구 체계로 내려오고 있음을 뜻한다.</p>
+      <div class="message"><strong>결론과 함의:</strong> OpenVLA는 planner/policy 계열의 공통 기반을 제공한다. 그러나 세계 모델이나 reward interface가 내장된 것은 아니므로, 장기적으로는 OpenVLA류 모델을 WAM, 평가 모델, embodiment adapter와 결합하는 방향이 중요하다.</div>
+    </article>
+
+    <article class="paper" id="p6" data-recommended="6" data-date="2024-10" data-taxonomy="3">
+      <h3><a href="https://arxiv.org/pdf/2410.24164">6. π0: A Vision-Language-Action Flow Model for General Robot Control</a></h3>
+      <p class="paper-meta">2024.10, Physical Intelligence 계열, PDF</p>
+      <p>π0는 general robot control을 위해 vision-language-action 구조와 flow matching 기반 action generation을 결합한 모델이다. RT-2나 OpenVLA가 token화된 action의 가능성을 보였다면, π0는 연속적이고 고차원적인 로봇 행동을 더 자연스럽게 생성하는 방향을 제시한다. 로봇 제어에서 action은 문장처럼 하나씩 나열되는 기호가 아니라 시간적으로 연속된 궤적이며, 그 분포는 여러 가능한 해를 포함한다.</p>
+      <p>이 자료의 초점은 “일반 로봇 제어를 위한 action representation”이다. 로봇은 하나의 정답 action만 내는 것이 아니라, 상황에 맞는 trajectory를 안정적으로 생성해야 한다. 따라서 π0는 planner 범주에 속하지만, 단순 planner보다 더 물리적이고 연속적인 action decoder의 문제를 전면에 놓는다.</p>
+      <div class="message"><strong>결론과 함의:</strong> π0는 VLA가 실제 로봇 제어로 내려오려면 action을 어떻게 표현하고 생성할지 해결해야 함을 보여준다. WAM이 미래 예측을 붙인다 해도, 마지막에는 이런 연속 제어 표현이 필요하다.</div>
+    </article>
+
+    <article class="paper" id="p7" data-recommended="7" data-date="2023-03" data-taxonomy="3">
+      <h3><a href="https://arxiv.org/pdf/2303.04137">7. Diffusion Policy: Visuomotor Policy Learning via Action Diffusion</a></h3>
+      <p class="paper-meta">2023.03, Columbia/Stanford 등, PDF</p>
+      <p>Diffusion Policy는 diffusion model을 이미지 생성이 아니라 robot action sequence 생성에 적용한 대표 논문이다. 관측을 조건으로 여러 가능한 행동 궤적을 denoising 과정을 통해 생성하며, receding horizon control을 통해 실제 실행 안정성을 높인다. 이 방법은 행동 분포가 여러 모드로 갈라지는 manipulation task에서 특히 의미가 있다.</p>
+      <p>VLA나 WAM 논의에서 Diffusion Policy가 중요한 이유는 action generation의 수학적 형식을 제공하기 때문이다. 로봇 행동은 종종 하나의 평균값으로 표현하면 실패한다. 물체를 집는 방법, 손목을 돌리는 방식, 접촉을 만드는 경로는 여러 해가 있을 수 있다. Diffusion Policy는 그런 다중해 구조를 정책 안에 담는 방법이다.</p>
+      <div class="message"><strong>결론과 함의:</strong> Diffusion Policy는 planner의 저수준 행동 생성 능력을 강화한다. 향후 WAM에서는 world model이 미래 상태를 예측하고, diffusion/flow 계열 decoder가 그 예측을 실행 가능한 action chunk로 바꾸는 구성이 자연스럽다.</div>
+    </article>
+
+    <article class="paper" id="p8" data-recommended="8" data-date="2023-04" data-taxonomy="3">
+      <h3><a href="https://arxiv.org/pdf/2304.13705">8. Learning Fine-Grained Bimanual Manipulation with Low-Cost Hardware</a></h3>
+      <p class="paper-meta">2023.04, ALOHA/ACT, PDF</p>
+      <p>이 논문은 저비용 양팔 로봇 하드웨어와 Action Chunking with Transformers(ACT)를 결합해 정밀 조작을 학습한다. 핵심은 매 순간 하나의 action만 예측하지 않고, 일정 길이의 action sequence를 chunk로 예측하는 것이다. 이렇게 하면 imitation learning에서 작은 오류가 시간에 따라 누적되는 문제를 줄이고, 사람 demonstration의 시간적 구조를 더 잘 포착할 수 있다.</p>
+      <p>이 자료는 foundation model 논문은 아니지만, embodied robot 논의에서 매우 중요하다. 거대한 VLA가 있더라도 실제 손, 팔, 그리퍼가 안정적으로 움직이지 못하면 의미 이해는 행동으로 완성되지 않는다. ACT는 언어적 추론보다 제어 안정성과 demonstration 효율이 얼마나 중요한지를 보여준다.</p>
+      <div class="message"><strong>결론과 함의:</strong> 궁극적 로봇은 상위 의미 planner와 하위 skill controller가 결합되어야 한다. ACT는 그 하위 계층에서 action chunk, temporal smoothing, imitation stability가 핵심이라는 사실을 강하게 말한다.</div>
+    </article>
+
+    <article class="paper" id="p9" data-recommended="9" data-date="2025-11" data-taxonomy="4">
+      <h3><a href="https://arxiv.org/pdf/2511.09515">9. WMPO: World Model-based Policy Optimization for Vision-Language-Action Models</a></h3>
+      <p class="paper-meta">2025.11, PDF</p>
+      <p>WMPO는 VLA policy를 실제 환경과 계속 상호작용시키지 않고, world model 안의 imagined trajectory에서 강화학습으로 개선하려는 접근이다. 이 논문은 VLA의 약점, 즉 imitation learning만으로는 distribution shift와 compounding error에 취약하다는 문제를 겨냥한다. 모델은 action-conditioned pixel-space prediction을 통해 VLA가 이해하는 시각 feature와 imagined rollout을 맞추려 한다.</p>
+      <p>중요한 점은 world model이 단순 보조 모듈이 아니라 policy optimization의 장이 된다는 것이다. 실제 로봇 실험은 비싸고 느리고 위험하다. WMPO는 world model을 안전하고 반복 가능한 정책 개선 공간으로 사용한다. 이는 Dreamer 계열의 아이디어를 VLA 로봇 정책에 적용한 흐름으로 볼 수 있다.</p>
+      <div class="message"><strong>결론과 함의:</strong> WMPO의 함의는 명확하다. VLA는 pretraining과 imitation만으로 끝나지 않고, world model 안에서 post-training되어야 한다. 로봇 foundation model의 경쟁력은 사전학습 규모보다 안전한 정책 개선 루프에 달릴 수 있다.</div>
+    </article>
+
+    <article class="paper" id="p10" data-recommended="10" data-date="2026-02" data-taxonomy="4">
+      <h3><a href="https://arxiv.org/pdf/2602.15922">10. World Action Models are Zero-shot Policies</a></h3>
+      <p class="paper-meta">2026.02, DreamZero/WAM, PDF</p>
+      <p>이 논문은 WAM이라는 표현을 강하게 전면화한다. DreamZero는 pretrained video diffusion backbone을 기반으로 미래 world state와 action을 함께 모델링한다. 전통적 VLA가 관측과 명령에서 바로 action을 출력한다면, WAM은 세계가 어떻게 변할지의 표현과 행동 생성을 결합한다. 논문은 WAM이 unseen task와 environment에 대한 generalization에서 VLA보다 강할 수 있음을 주장한다.</p>
+      <p>특히 중요한 점은 cross-embodiment transfer다. 다른 로봇이나 사람의 video-only demonstration에서 학습 신호를 얻고, 새로운 embodiment에 적은 데이터로 적응하는 방향을 제시한다. 이것은 로봇 데이터 부족 문제에 대한 직접적 답변이다. 로봇별 teleoperation data만으로는 규모가 나오지 않기 때문이다.</p>
+      <div class="message"><strong>결론과 함의:</strong> DreamZero의 메시지는 VLA에서 WAM으로의 전환이다. 로봇은 명령을 보고 바로 움직이는 기계가 아니라, 미래를 예측하고 그 예측을 action과 함께 학습하는 모델이어야 한다.</div>
+    </article>
+
+    <article class="paper" id="p11" data-recommended="11" data-date="2026-03" data-taxonomy="4">
+      <h3><a href="https://arxiv.org/pdf/2603.16666">11. Fast-WAM: Do World Action Models Need Test-time Future Imagination?</a></h3>
+      <p class="paper-meta">2026.03, PDF</p>
+      <p>Fast-WAM은 WAM에 대한 중요한 반문을 던진다. 미래를 상상하는 모델이 유용하다면, test time마다 비디오 미래를 생성해야 하는가. 이것은 실용적으로 매우 큰 문제다. 로봇 제어는 지연 시간이 짧아야 하고, 비디오 생성은 계산 비용이 크다. 따라서 WAM이 매 순간 긴 future video를 생성해야 한다면 실제 로봇 배포에 부담이 된다.</p>
+      <p>이 자료의 핵심은 test-time imagination보다 training-time video co-training의 효과를 따져보는 데 있다. 즉 모델이 학습 과정에서 미래 예측을 통해 물리 구조를 익히고, 실행 시점에는 더 빠른 action inference를 수행할 수 있는지 묻는다. 이는 WAM을 이론적 매력에서 실제 제어 시스템으로 옮기는 데 필요한 질문이다.</p>
+      <div class="message"><strong>결론과 함의:</strong> Fast-WAM은 WAM 연구의 병목이 성능만이 아니라 latency, compute, deployment architecture임을 보여준다. embodied robot에서는 “상상하는 능력”과 “빠르게 행동하는 능력”을 분리해 설계해야 한다.</div>
+    </article>
+
+    <article class="paper" id="p12" data-recommended="12" data-date="2026-05" data-taxonomy="4">
+      <h3><a href="https://arxiv.org/pdf/2605.06481">12. OA-WAM: Object-Addressable World Action Model for Robust Robot Manipulation</a></h3>
+      <p class="paper-meta">2026.05, PDF</p>
+      <p>OA-WAM은 WAM의 표현 문제를 물체 단위로 정교화한다. 기존 WAM이 predicted world를 전체 이미지, 비디오 token, global latent로 다루면, 특정 물체를 조작하라는 명령이 들어왔을 때 어떤 물체가 어떤 상태인지 분리하기 어렵다. OA-WAM은 장면을 robot slot과 object slot으로 나누고, 각 slot에 identity와 time-varying content를 둔다.</p>
+      <p>이 접근은 로봇 조작에서 매우 실질적이다. 조작 명령은 대개 “컵을 잡아라”, “파란 블록을 옮겨라”처럼 물체를 지시한다. 모델 내부 표현이 물체 addressability를 갖지 못하면, 배경 변화나 물체 위치 변화에 취약해진다. OA-WAM은 world model과 action decoder 사이의 인터페이스가 객체 중심이어야 함을 말한다.</p>
+      <div class="message"><strong>결론과 함의:</strong> robust manipulation의 핵심은 장면 전체를 그럴듯하게 이해하는 것이 아니라, 조작 대상의 정체성과 상태를 안정적으로 추적하는 것이다. WAM은 object-centric representation을 갖출 때 실제 로봇 조작에 가까워진다.</div>
+    </article>
+
+    <article class="paper" id="p13" data-recommended="13" data-date="2026-05" data-taxonomy="4">
+      <h3><a href="https://arxiv.org/pdf/2605.12090">13. World Action Models: The Next Frontier in Embodied AI</a></h3>
+      <p class="paper-meta">2026.05, WAM survey, PDF</p>
+      <p>이 서베이는 WAM을 하나의 연구 패러다임으로 정리한다. VLA는 observation-to-action mapping에 강하지만 물리적 세계의 변화를 명시적으로 모델링하지 않는다. WAM은 predictive state modeling과 action generation을 결합하여, 미래 상태와 행동의 joint distribution을 목표로 한다. 서베이는 WAM을 cascaded WAM과 joint WAM으로 나누고, generation modality, conditioning, action decoding 기준으로 체계화한다.</p>
+      <p>이 자료가 중요한 이유는 분산되어 있던 연구 흐름에 이름과 구조를 준다는 점이다. Genie, Dreamer, VLA, video diffusion, robot policy가 따로 발전하던 흐름을 embodied foundation model이라는 하나의 관점에서 묶는다. 또한 데이터 생태계와 평가 기준까지 포함해, WAM이 단순 모델 구조가 아니라 연구 프로그램임을 보여준다.</p>
+      <div class="message"><strong>결론과 함의:</strong> WAM survey는 2026년 이후 로봇 AI를 읽는 중심 지도다. 앞으로의 경쟁은 “더 큰 VLA”가 아니라, world prediction과 action generation을 어떤 구조로 결합하느냐에 놓일 가능성이 크다.</div>
+    </article>
+
+    <article class="paper" id="p14" data-recommended="14" data-date="2026-04" data-taxonomy="5">
+      <h3><a href="https://arxiv.org/pdf/2605.00080">14. World Model for Robot Learning: A Comprehensive Survey</a></h3>
+      <p class="paper-meta">2026.04, robot world model survey, PDF</p>
+      <p>이 서베이는 world model을 robot learning 관점에서 넓게 정리한다. world model은 환경이 action 아래에서 어떻게 변하는지에 대한 예측 표현이며, policy learning, planning, simulation, evaluation, data generation에 모두 연결된다. 특히 foundation model과 대규모 비디오 생성의 발전 이후, world model은 작은 latent dynamics model에서 foundation-scale robotic video world model로 확장되고 있다.</p>
+      <p>이 자료는 world model을 renderer와 simulator 사이에서 균형 있게 다룬다. 한편으로는 robotic video generation이 중요하지만, 다른 한편으로는 정책 평가와 계획에 쓰일 수 있는 구조적 예측이 더 중요하다. 따라서 세계 모델의 품질은 visual fidelity만으로 평가할 수 없다. physical consistency, controllability, action relevance가 함께 필요하다.</p>
+      <div class="message"><strong>결론과 함의:</strong> 로봇 학습에서 world model은 선택적 장식이 아니라 중심 인프라가 되고 있다. 다만 좋은 world model은 “잘 그리는 모델”이 아니라 “로봇이 행동을 개선하는 데 쓸 수 있는 모델”이어야 한다.</div>
+    </article>
+
+    <article class="paper" id="p15" data-recommended="15" data-date="2026-04" data-taxonomy="5">
+      <h3><a href="https://arxiv.org/pdf/2604.23001">15. Vision-Language-Action in Robotics: Datasets, Benchmarks, and Data Engines</a></h3>
+      <p class="paper-meta">2026.04, VLA data survey, PDF</p>
+      <p>이 서베이는 VLA의 병목을 모델 구조보다 데이터 인프라에서 찾는다. VLA 연구는 거대한 vision-language 모델을 로봇 action으로 연결하며 빠르게 발전했지만, 실제로는 데이터의 fidelity, embodiment diversity, action space formulation, benchmark 설계가 성능을 제한한다. 로봇 데이터는 비싸고 느리며, 실험 환경과 embodiment가 달라지면 일반화가 급격히 어려워진다.</p>
+      <p>자료의 핵심 주장은 future VLA progress가 architecture scaling만으로 달성되지 않는다는 것이다. 필요한 것은 high-fidelity data engine, structured benchmark, scalable task generation, multimodal supervision이다. 즉 VLA는 모델 논문만으로 완성되지 않고, 데이터를 만들고 평가하고 정렬하는 체계를 필요로 한다.</p>
+      <div class="message"><strong>결론과 함의:</strong> VLA의 다음 단계는 “모델을 더 크게”가 아니라 “학습할 세계와 평가할 과제를 더 제대로” 만드는 것이다. embodied robot 연구자는 데이터 엔진을 연구의 부속물이 아니라 핵심 객체로 취급해야 한다.</div>
+    </article>
+
+    <article class="paper" id="p16" data-recommended="16" data-date="2026-06" data-taxonomy="5">
+      <h3><a href="https://arxiv.org/pdf/2606.06556">16. Robots Need More than VLA and World Models</a></h3>
+      <p class="paper-meta">2026.06, position paper, PDF</p>
+      <p>이 포지션 페이퍼는 제목 그대로 VLA와 world model만으로는 부족하다고 주장한다. 로봇 지능의 병목은 policy learning 하나가 아니라, 세상에 이미 존재하는 방대한 행동 데이터를 로봇이 쓸 수 있는 supervision으로 바꾸는 인터페이스의 부재라는 것이다. 인간 동작, 인터넷 비디오, simulation rollout, interactive demonstration은 모두 가치가 있지만, 그대로는 로봇 action label, reward, task semantics가 없다.</p>
+      <p>논문은 네 가지 interface를 제시한다. data interface는 비정형 행동 데이터를 자동 라벨링하고, embodiment interface는 인간 또는 다른 로봇의 행동을 목표 로봇의 action으로 retargeting한다. world-model interface는 3D 물리 추론을 담당하고, reward interface는 성공, 실패, task progress를 추론한다. 이 구조는 VLA와 WAM을 더 큰 시스템 안에 위치시킨다.</p>
+      <div class="message"><strong>결론과 함의:</strong> 최종 메시지는 단호하다. 일반 로봇은 하나의 거대 모델이 아니라, 데이터 변환, embodiment 변환, 세계 예측, 보상 평가를 잇는 시스템으로 만들어진다. 이 논문은 연구 의제를 가장 넓게 확장한다.</div>
+    </article>
+
+    <article class="paper" id="p17" data-recommended="17" data-date="2025-05" data-taxonomy="1">
+      <h3><a href="https://storage.googleapis.com/deepmind-media/veo/Veo-3-Tech-Report.pdf">17. Veo 3 Technical Report</a></h3>
+      <p class="paper-meta">2025.05, Google DeepMind, PDF</p>
+      <p>Veo 3 기술 보고서는 고품질 비디오 생성 모델이 어디까지 왔는지를 보여준다. 이 자료의 직접 목표는 로봇 제어가 아니라 영상 생성과 안전성 평가다. 그러나 world model 논의에서는 중요하다. 비디오 모델이 시간, 물체, 장면 일관성, 움직임, 카메라 변화, 물리적 상호작용의 일부를 학습할수록, 그 모델은 renderer를 넘어 simulator 후보로 해석되기 때문이다.</p>
+      <p>다만 Veo 3는 로봇 action-conditioned control model은 아니다. 사용자의 prompt와 조건에 따라 비디오를 생성하지만, 로봇이 특정 행동을 실행했을 때 물체가 어떻게 변하는지를 안정적으로 폐루프 예측하는 모델과는 다르다. 따라서 Fei-Fei식 분류에서는 강력한 renderer, 혹은 simulator로 가는 중간 지점으로 보는 것이 정확하다.</p>
+      <div class="message"><strong>결론과 함의:</strong> Veo 3는 visual world prior의 중요성을 보여준다. 로봇 연구에는 직접 policy보다 시각적 사전학습, synthetic data, 미래 관측 생성의 자원으로 의미가 있다.</div>
+    </article>
+
+    <article class="paper" id="p18" data-recommended="18" data-date="2026-06" data-taxonomy="0">
+      <h3><a href="https://drfeifei.substack.com/p/a-functional-taxonomy-of-world-models">18. A Functional Taxonomy of World Models</a></h3>
+      <p class="paper-meta">2026.06, Fei-Fei Li / World Labs, web</p>
+      <p>이 글은 world model이라는 과부하된 용어를 기능적으로 정리한다. renderer는 사람이 볼 관측을 출력하고, simulator는 계산 가능한 상태와 동역학을 출력하며, planner는 에이전트가 무엇을 해야 하는지 결정한다. 중요한 점은 이 셋이 서로 배타적인 연구 분야가 아니라, 에이전트 loop 안에서 서로 연결되는 기능이라는 것이다.</p>
+      <p>이 분류는 Sora, Veo, Genie, Cosmos, VLA, WAM을 한 언어로 비교하게 해준다. 비디오 모델은 대체로 renderer에서 출발한다. Dreamer와 action-conditioned model은 simulator에 가깝다. RT-2나 OpenVLA는 planner/policy에 속한다. WAM은 simulator와 planner가 합쳐지는 지점이다. 따라서 이 글은 전체 자료군을 읽는 해석의 틀이다.</p>
+      <div class="message"><strong>결론과 함의:</strong> 이 taxonomy의 힘은 용어 정리에 있다. “world model”이라고 부르는 모든 모델이 같은 일을 하는 것은 아니다. 연구를 설계할 때는 내가 만들고 있는 것이 관측 생성기인지, 구조적 시뮬레이터인지, 행동 결정기인지 먼저 물어야 한다.</div>
+    </article>
+
+    <article class="paper" id="p19" data-recommended="19" data-date="2024-02" data-taxonomy="1">
+      <h3><a href="https://openai.com/index/video-generation-models-as-world-simulators/">19. Video Generation Models as World Simulators</a></h3>
+      <p class="paper-meta">2024.02, OpenAI Sora, web</p>
+      <p>OpenAI의 Sora 글은 대규모 비디오 생성 모델이 world simulator로 발전할 수 있다는 주장을 널리 확산시켰다. 모델은 다양한 길이와 해상도의 비디오를 생성하며, 장면 일관성, 카메라 움직임, 물체 지속성 같은 emergent simulation capability를 보인다고 설명된다. 이 글은 비디오 생성과 world model 논의를 강하게 연결한 전환점이다.</p>
+      <p>그러나 이 주장은 조심해서 읽어야 한다. “world simulator”라는 표현은 여기서 주로 시각적 시뮬레이션의 가능성을 뜻한다. 로봇 action을 입력하면 물리적으로 검증 가능한 상태 변화를 안정적으로 예측하는 simulator와는 차이가 있다. 그래서 Sora는 강력한 renderer이자 simulator로 가는 후보이지, 완성된 embodied simulator는 아니다.</p>
+      <div class="message"><strong>결론과 함의:</strong> Sora 글의 함의는 비디오 pretraining이 물리 세계 이해의 중요한 경로라는 것이다. 다만 로봇으로 이어지려면 action conditioning, 3D structure, contact dynamics, closed-loop evaluation이 추가되어야 한다.</div>
+    </article>
+
+    <article class="paper" id="p20" data-recommended="20" data-date="2024-12" data-taxonomy="1">
+      <h3><a href="https://deepmind.google/blog/genie-2-a-large-scale-foundation-world-model/">20. Genie 2: A Large-Scale Foundation World Model</a></h3>
+      <p class="paper-meta">2024.12, Google DeepMind, web</p>
+      <p>Genie 2는 prompt image에서 action-controllable, playable 3D environment를 생성하는 foundation world model로 소개된다. Genie 1이 2D적 상호작용 환경에 가까웠다면, Genie 2는 3D 공간성과 playable environment를 더 강하게 내세운다. 사용자는 keyboard와 mouse 입력을 통해 생성된 세계 안에서 움직일 수 있고, 이는 embodied agent training과 evaluation의 가능성을 연다.</p>
+      <p>Genie 2의 중요성은 생성 모델이 “보여주는 매체”에서 “들어가서 행동하는 매체”로 확장된다는 데 있다. 그러나 생성된 환경이 실제 물리와 얼마나 일치하는지, 로봇 manipulator의 접촉과 조작을 얼마나 정확히 다룰 수 있는지는 별도의 문제다. 즉 게임적 상호작용 가능성과 로봇 물리 시뮬레이션 가능성은 구분해야 한다.</p>
+      <div class="message"><strong>결론과 함의:</strong> Genie 2는 interactive world generation의 방향을 보여준다. embodied AI에는 무한한 훈련 환경의 가능성을 주지만, 실제 로봇으로 가려면 geometry, dynamics, embodiment-specific action mapping의 정밀도가 더 필요하다.</div>
+    </article>
+
+    <article class="paper" id="p21" data-recommended="21" data-date="2025-08" data-taxonomy="1">
+      <h3><a href="https://deepmind.google/blog/genie-3-a-new-frontier-for-world-models/">21. Genie 3: A New Frontier for World Models</a></h3>
+      <p class="paper-meta">2025.08, Google DeepMind, web</p>
+      <p>Genie 3는 실시간 상호작용, 더 긴 일관성, 더 나은 현실감을 강조하는 세계 모델로 소개된다. 특히 promptable world events와 장면의 지속성을 통해 사용자가 생성된 환경 안에서 더 오래 머물고 개입할 수 있게 하는 방향을 보인다. 이는 world model이 정적인 비디오 생성에서 실시간 interactive simulation으로 이동하고 있음을 상징한다.</p>
+      <p>로봇 관점에서 Genie 3의 의미는 두 가지다. 첫째, 에이전트를 학습시킬 수 있는 open-ended environment generation의 가능성이다. 둘째, 여전히 visual-interactive world와 robot-action-accurate world 사이의 간극이다. 로봇은 화면 안을 걷는 것뿐 아니라 물체를 잡고 밀고 놓으며, 힘과 접촉의 결과를 예측해야 한다.</p>
+      <div class="message"><strong>결론과 함의:</strong> Genie 3는 renderer와 simulator의 경계가 빠르게 무너지고 있음을 보여준다. 그러나 궁극적 embodied robot을 위해서는 실시간 생성 능력을 물리적 검증 가능성, 조작 가능성, reward/evaluation loop와 결합해야 한다.</div>
+    </article>
+
+    </section>
+
+    <h2>종합 결론</h2>
+    <p>
+      이 자료들을 하나의 흐름으로 읽으면, 로봇 AI는 세 단계의 압력을 동시에 받고 있다. 첫째, Sora, Veo, Genie, Cosmos는 시각 세계를 생성하고 확장하는 renderer의 힘을 보여준다. 둘째, DreamerV3와 robot world model survey는 action에 따른 미래 예측이 정책 학습의 핵심임을 말한다. 셋째, RT-2, OpenVLA, π0, Diffusion Policy, ACT는 관측과 언어를 실제 행동으로 바꾸는 planner/policy의 문제를 다룬다. 2026년 WAM 흐름은 이 세 계열을 하나로 묶으려는 시도다.
+    </p>
+    <p>
+      궁극적 embodied robot을 만들기 위한 결론은 단순하다. 더 큰 VLA만으로는 부족하고, 더 예쁜 비디오 모델만으로도 부족하다. 필요한 것은 의미 이해, 물리 예측, 객체 중심 표현, 연속 action generation, embodiment retargeting, reward inference, 배포 후 self-improvement가 연결된 닫힌 루프다. 앞으로의 핵심 질문은 “어떤 모델이 제일 큰가”가 아니라 “어떤 인터페이스가 세계, 행동, 보상, 로봇 몸체를 일관된 학습 시스템으로 묶는가”다.
+    </p>
+
+    <h2>자료 목록</h2>
+    <ol>
+      <li><a href="https://arxiv.org/pdf/2402.15391">Genie: Generative Interactive Environments</a> <span class="tag">2024.02 PDF</span></li>
+      <li><a href="https://arxiv.org/pdf/2501.03575">Cosmos World Foundation Model Platform for Physical AI</a> <span class="tag">2025.01 PDF</span></li>
+      <li><a href="https://arxiv.org/pdf/2301.04104">Mastering Diverse Domains through World Models</a> <span class="tag">2023.01 PDF</span></li>
+      <li><a href="https://arxiv.org/pdf/2307.15818">RT-2: Vision-Language-Action Models Transfer Web Knowledge to Robotic Control</a> <span class="tag">2023.07 PDF</span></li>
+      <li><a href="https://arxiv.org/pdf/2406.09246">OpenVLA: An Open-Source Vision-Language-Action Model</a> <span class="tag">2024.06 PDF</span></li>
+      <li><a href="https://arxiv.org/pdf/2410.24164">π0: A Vision-Language-Action Flow Model for General Robot Control</a> <span class="tag">2024.10 PDF</span></li>
+      <li><a href="https://arxiv.org/pdf/2303.04137">Diffusion Policy: Visuomotor Policy Learning via Action Diffusion</a> <span class="tag">2023.03 PDF</span></li>
+      <li><a href="https://arxiv.org/pdf/2304.13705">Learning Fine-Grained Bimanual Manipulation with Low-Cost Hardware</a> <span class="tag">2023.04 PDF</span></li>
+      <li><a href="https://arxiv.org/pdf/2511.09515">WMPO: World Model-based Policy Optimization for VLA Models</a> <span class="tag">2025.11 PDF</span></li>
+      <li><a href="https://arxiv.org/pdf/2602.15922">World Action Models are Zero-shot Policies</a> <span class="tag">2026.02 PDF</span></li>
+      <li><a href="https://arxiv.org/pdf/2603.16666">Fast-WAM: Do World Action Models Need Test-time Future Imagination?</a> <span class="tag">2026.03 PDF</span></li>
+      <li><a href="https://arxiv.org/pdf/2605.06481">OA-WAM: Object-Addressable World Action Model for Robust Robot Manipulation</a> <span class="tag">2026.05 PDF</span></li>
+      <li><a href="https://arxiv.org/pdf/2605.12090">World Action Models: The Next Frontier in Embodied AI</a> <span class="tag">2026.05 PDF</span></li>
+      <li><a href="https://arxiv.org/pdf/2605.00080">World Model for Robot Learning: A Comprehensive Survey</a> <span class="tag">2026.04 PDF</span></li>
+      <li><a href="https://arxiv.org/pdf/2604.23001">Vision-Language-Action in Robotics: Datasets, Benchmarks, and Data Engines</a> <span class="tag">2026.04 PDF</span></li>
+      <li><a href="https://arxiv.org/pdf/2606.06556">Robots Need More than VLA and World Models</a> <span class="tag">2026.06 PDF</span></li>
+      <li><a href="https://storage.googleapis.com/deepmind-media/veo/Veo-3-Tech-Report.pdf">Veo 3 Technical Report</a> <span class="tag">2025.05 PDF</span></li>
+      <li><a href="https://drfeifei.substack.com/p/a-functional-taxonomy-of-world-models">A Functional Taxonomy of World Models</a> <span class="tag">2026.06 web</span></li>
+      <li><a href="https://openai.com/index/video-generation-models-as-world-simulators/">Video Generation Models as World Simulators</a> <span class="tag">2024.02 web</span></li>
+      <li><a href="https://deepmind.google/blog/genie-2-a-large-scale-foundation-world-model/">Genie 2: A Large-Scale Foundation World Model</a> <span class="tag">2024.12 web</span></li>
+      <li><a href="https://deepmind.google/blog/genie-3-a-new-frontier-for-world-models/">Genie 3: A New Frontier for World Models</a> <span class="tag">2025.08 web</span></li>
+    </ol>
+  </main>
+  <script>
+    const notes = {
+      recommended: "추천 읽기순: 개념적 발판을 먼저 놓고, 정책 모델을 본 뒤, WAM과 최신 종합 논문으로 마무리한다.",
+      time: "시간순: 각 자료가 등장한 역사적 순서대로 배치한다. VLA와 action policy가 먼저 나오고, 이후 world model platform과 WAM이 본격화되는 흐름이 보인다.",
+      taxonomy: "분류순: 개념 지도, renderer, simulator, planner, hybrid/WAM, 시스템·서베이 순으로 묶는다. 세 분류만으로 애매한 자료는 결합형 또는 종합형으로 따로 둔다."
+    };
+    const taxonomyLabels = {
+      "0": "개념 지도",
+      "1": "Renderer",
+      "2": "Simulator",
+      "3": "Planner / Policy",
+      "4": "Hybrid / WAM",
+      "5": "System / Survey"
+    };
+    const list = document.querySelector("#paper-list");
+    const papers = Array.from(document.querySelectorAll(".paper"));
+    const buttons = Array.from(document.querySelectorAll(".tabs button"));
+    const note = document.querySelector("#mode-note");
+    const orderChips = document.querySelector("#order-chips");
+    const shortTitles = {
+      p1: "Genie",
+      p2: "Cosmos",
+      p3: "DreamerV3",
+      p4: "RT-2",
+      p5: "OpenVLA",
+      p6: "π0",
+      p7: "Diffusion Policy",
+      p8: "ACT",
+      p9: "WMPO",
+      p10: "DreamZero",
+      p11: "Fast-WAM",
+      p12: "OA-WAM",
+      p13: "WAM Survey",
+      p14: "Robot WM Survey",
+      p15: "VLA Data Survey",
+      p16: "More than VLA/WM",
+      p17: "Veo 3",
+      p18: "Functional Taxonomy",
+      p19: "Sora",
+      p20: "Genie 2",
+      p21: "Genie 3"
+    };
+    const recommendedTransitions = {
+      "p1>p2": "Genie가 비디오에서 상호작용 가능한 latent action을 끌어냈다면, Cosmos는 이 발상을 physical AI 개발 플랫폼과 synthetic data 체계로 확장한다.",
+      "p2>p3": "플랫폼 관점 다음에는 world model이 실제 policy improvement에 어떻게 쓰이는지 보기 위해 DreamerV3로 내려간다.",
+      "p3>p4": "미래를 상상해 행동을 개선하는 simulator 관점을 본 뒤, 이제 관측과 언어를 바로 action으로 바꾸는 VLA의 출발점으로 이동한다.",
+      "p4>p5": "RT-2가 VLA 가능성을 보여준다면, OpenVLA는 그 흐름을 공개 모델과 재현 가능한 연구 기반으로 만든다.",
+      "p5>p6": "공개 VLA 기반을 본 뒤에는 연속적 robot action을 더 직접적으로 생성하는 π0의 action representation 문제로 간다.",
+      "p6>p7": "π0의 flow 기반 action 생성과 나란히, Diffusion Policy는 다중해 action trajectory를 생성하는 또 다른 강한 정책 형식을 제공한다.",
+      "p7>p8": "연속 행동 분포 다음에는 실제 정밀 조작에서 action chunk가 왜 필요한지 ACT로 확인한다.",
+      "p8>p9": "policy 계열의 한계를 본 뒤, world model 안에서 VLA policy를 개선하는 WMPO로 hybrid 흐름에 진입한다.",
+      "p9>p10": "WMPO가 world model을 훈련장으로 쓴다면, DreamZero는 world state와 action을 함께 모델링하는 WAM 개념을 전면화한다.",
+      "p10>p11": "WAM의 가능성을 본 뒤에는 실제 배포에서 test-time imagination이 너무 비싼지 묻는 Fast-WAM으로 넘어간다.",
+      "p11>p12": "속도 문제 다음에는 조작 대상의 정체성을 안정적으로 다루는 object-addressability 문제로 이동한다.",
+      "p12>p13": "개별 WAM 설계들을 본 뒤, WAM Survey로 전체 구조와 명명법을 종합한다.",
+      "p13>p14": "WAM이라는 결합형 패러다임을 정리한 다음, robot learning 전체에서 world model의 기능을 넓게 다시 본다.",
+      "p14>p15": "world model의 역할을 봤다면, VLA 발전의 실제 병목인 데이터·벤치마크·엔진 문제를 확인해야 한다.",
+      "p15>p16": "데이터 인프라 논의를 지나면, VLA와 world model만으로도 부족하다는 더 큰 시스템 의제로 확장된다.",
+      "p16>p17": "시스템 의제를 이해한 뒤에는 visual world prior를 대표하는 Veo 3를 renderer 자원으로 다시 읽는다.",
+      "p17>p18": "개별 사례들을 본 뒤, Functional Taxonomy로 renderer·simulator·planner의 언어를 정리한다.",
+      "p18>p19": "taxonomy를 들고 Sora 글을 읽으면, 'world simulator'라는 표현이 어디까지 타당한지 더 정확히 보인다.",
+      "p19>p20": "Sora의 비디오 생성 관점 다음에는 playable world generation을 내세운 Genie 2로 상호작용성을 비교한다.",
+      "p20>p21": "마지막으로 Genie 3는 실시간성과 지속성이 강화된 interactive world model의 최근 방향을 보여준다."
+    };
+
+    papers.forEach((paper) => {
+      const h3 = paper.querySelector("h3");
+      const label = document.createElement("span");
+      label.className = "paper-label";
+      label.textContent = `${paper.dataset.date} · ${taxonomyLabels[paper.dataset.taxonomy]}`;
+      h3.appendChild(label);
+    });
+
+    function transitionText(previous, current, mode) {
+      if (mode === "recommended") {
+        return recommendedTransitions[`${previous.id}>${current.id}`] || "앞 자료의 문제의식을 다음 자료가 다른 관점에서 이어받는다.";
+      }
+      if (mode === "time") {
+        const prevDate = previous.dataset.date;
+        const currentDate = current.dataset.date;
+        if (prevDate === currentDate) {
+          return `같은 시기의 병렬 흐름이다. ${shortTitles[previous.id]}와 ${shortTitles[current.id]}를 함께 보면 그 달의 연구 관심이 어디로 모였는지 보인다.`;
+        }
+        return `${prevDate}에서 ${currentDate}로 이동한다. 시간순으로 읽으면 ${shortTitles[previous.id]} 이후 ${shortTitles[current.id]}가 어떤 문제를 새로 제기했는지 추적할 수 있다.`;
+      }
+      const prevTax = taxonomyLabels[previous.dataset.taxonomy];
+      const currentTax = taxonomyLabels[current.dataset.taxonomy];
+      if (prevTax === currentTax) {
+        return `같은 ${currentTax} 계열 안의 다음 사례다. 방법의 차이보다 공통 기능을 비교해서 읽는 것이 좋다.`;
+      }
+      return `${prevTax}에서 ${currentTax}로 범주가 바뀐다. 이 전환은 세계를 어떻게 표현하는가에서, 그것이 행동과 시스템으로 어떻게 연결되는가로 시야를 넓힌다.`;
+    }
+
+    function renderOrderChips(sorted) {
+      orderChips.replaceChildren();
+      sorted.forEach((paper, index) => {
+        if (index > 0) {
+          const arrow = document.createElement("span");
+          arrow.className = "order-arrow";
+          arrow.textContent = "=>";
+          orderChips.appendChild(arrow);
+        }
+        const chip = document.createElement("a");
+        chip.className = "order-chip";
+        chip.href = `#${paper.id}`;
+        chip.textContent = `${index + 1}. ${shortTitles[paper.id]}`;
+        orderChips.appendChild(chip);
+      });
+    }
+
+    function renderTransitions(sorted, mode) {
+      document.querySelectorAll(".transition").forEach((node) => node.remove());
+      sorted.forEach((paper, index) => {
+        list.appendChild(paper);
+        if (index < sorted.length - 1) {
+          const next = sorted[index + 1];
+          const transition = document.createElement("div");
+          transition.className = "transition";
+          const marker = document.createElement("b");
+          marker.textContent = "=>";
+          const text = document.createElement("span");
+          text.textContent = transitionText(paper, next, mode);
+          transition.append(marker, text);
+          list.appendChild(transition);
+        }
+      });
+    }
+
+    function sortPapers(mode) {
+      const sorted = [...papers].sort((a, b) => {
+        if (mode === "time") {
+          return a.dataset.date.localeCompare(b.dataset.date) ||
+            Number(a.dataset.recommended) - Number(b.dataset.recommended);
+        }
+        if (mode === "taxonomy") {
+          return Number(a.dataset.taxonomy) - Number(b.dataset.taxonomy) ||
+            Number(a.dataset.recommended) - Number(b.dataset.recommended);
+        }
+        return Number(a.dataset.recommended) - Number(b.dataset.recommended);
+      });
+      renderOrderChips(sorted);
+      renderTransitions(sorted, mode);
+      buttons.forEach((button) => {
+        button.setAttribute("aria-selected", String(button.dataset.mode === mode));
+      });
+      note.textContent = notes[mode];
+    }
+
+    buttons.forEach((button) => {
+      button.addEventListener("click", () => sortPapers(button.dataset.mode));
+    });
+    sortPapers("recommended");
+  </script>
+</body>
+</html>
