@@ -313,11 +313,13 @@
       <ol>
         <li><a href="#problem">문제의 출발점</a></li>
         <li><a href="#taxonomy">세 기능: renderer, simulator, planner</a></li>
+        <li><a href="#space">표현 공간과 수학적 구조</a></li>
         <li><a href="#vla">VLA의 위치</a></li>
         <li><a href="#wam">WAM의 등장</a></li>
         <li><a href="#surveys">2026년 이후 서베이의 공통 주장</a></li>
         <li><a href="#agenda">Embodied robot을 위한 연구 의제</a></li>
         <li><a href="#architecture">가능한 시스템 구조</a></li>
+        <li><a href="#recap">종합 정리</a></li>
         <li><a href="#refs">참고문헌</a></li>
       </ol>
     </nav>
@@ -385,8 +387,92 @@
       </p>
     </section>
 
+    <section id="space">
+      <h2>3. 표현 공간과 수학적 구조</h2>
+      <p>
+        이제 한 단계 더 들어가 보자. Renderer와 simulator가 실제로 “어디에서” 작동하는가? 여기서 말하는 어디는 물리적 위치가 아니라
+        <strong>수학적 표현 공간</strong>이다. 많은 오해는 world model이 현실의 3차원 공간을 그대로 내부에 복사한다고 생각하는 데서 생긴다.
+        실제로는 대부분의 모델에서 렌더링과 시뮬레이션은 현실 공간에서 직접 일어나지 않는다. 그것들은 모델 내부의
+        <strong>latent state space</strong>, <strong>belief state space</strong>, <strong>token space</strong>,
+        또는 <strong>feature space</strong> 위에서 일어나며, 필요할 때만 이미지, 비디오, 3D 구조, 로봇 행동으로 decode된다.
+      </p>
+      <p>
+        이 관점을 가장 간단히 쓰면 다음과 같다.
+      </p>
+      <span class="formula">
+        state: z_t ∈ Z<br>
+        rendering: o_t = R(z_t)<br>
+        simulation: z_{t+1} = F(z_t, a_t)<br>
+        planning: a_t = Π(z_t, g)
+      </span>
+      <p>
+        여기서 <code>Z</code>는 world model의 내부 상태 공간이고, <code>R</code>은 renderer, <code>F</code>는 dynamics 또는 simulator,
+        <code>Π</code>는 planner 또는 policy이다. <code>o_t</code>는 이미지, 비디오, depth, text, tactile reading 같은 관측이며,
+        <code>a_t</code>는 행동, <code>g</code>는 목표 또는 언어 지시이다. 이 수식은 매우 단순하지만, 현재 논의를 정리하는 데 충분히 강력하다.
+        좋은 world model이란 <code>R</code>, <code>F</code>, <code>Π</code>가 서로 다른 표현 위에서 따로 노는 것이 아니라,
+        같은 상태 표현 <code>Z</code>를 공유하면서 시각적 복원, 물리적 예측, 행동 선택을 동시에 지탱하는 모델이다.
+      </p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>모델 계열</th>
+            <th>주된 수학적 공간</th>
+            <th>설명</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>이미지/비디오 renderer</td>
+            <td>Latent space, diffusion noise space, video token space</td>
+            <td>Sora, Veo류의 모델은 대개 픽셀 공간 자체보다 압축된 latent 또는 token 공간에서 denoising하며 관측을 생성한다.</td>
+          </tr>
+          <tr>
+            <td>3D world model</td>
+            <td>3D coordinate field, radiance field, Gaussian splat, voxel, mesh</td>
+            <td>Marble, NeRF, 3D Gaussian Splatting류는 비교적 명시적인 공간 표현을 갖는다. 그러나 이것도 물리 세계 자체가 아니라 모델화된 scene representation이다.</td>
+          </tr>
+          <tr>
+            <td>RL world model</td>
+            <td>Latent state space, recurrent belief state</td>
+            <td>Dreamer류는 관측을 latent state로 encode하고, 그 latent state 위에서 미래 state, reward, continuation을 rollout한다.</td>
+          </tr>
+          <tr>
+            <td>VLA</td>
+            <td>Multimodal embedding space + action space</td>
+            <td>이미지, 언어, 로봇 상태가 공통 embedding으로 들어가고, action token 또는 continuous action으로 decode된다.</td>
+          </tr>
+          <tr>
+            <td>WAM</td>
+            <td>Joint video-action latent space</td>
+            <td>미래 관측과 행동을 함께 표현하는 latent dynamics 공간을 만들려 한다. 그래서 simulator와 planner의 결합으로 이해된다.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p>
+        관측이 불완전한 실제 세계에서는 <code>z_t</code>를 단순한 state라기보다 <strong>belief state</strong>로 보는 편이 더 정확하다.
+        로봇은 세계 전체를 직접 보지 못한다. 카메라에 가려진 물체, 접촉면의 미세한 힘, 마찰계수, 물체 내부의 질량 분포는 직접 관측되지 않는다.
+        따라서 내부 상태는 보통 다음과 같은 조건부 믿음에 가깝다.
+      </p>
+      <span class="formula">
+        b_t = p(world_state_t | observations_{≤t}, actions_{&lt;t})<br>
+        b_{t+1} = F(b_t, a_t)
+      </span>
+      <p>
+        즉 simulator는 현실 세계의 완전한 복사본을 시간 전진시키는 장치가 아니다. 그것은 관측과 행동의 역사로부터 구성된 belief를 갱신하는 연산자이다.
+        이 때문에 world model의 표현은 “세계의 모든 것”을 담을 필요가 없다. 행동과 예측에 충분한 정보를 담으면 된다.
+      </p>
+      <div class="note">
+        <strong>표현의 핵심.</strong>
+        렌더링은 내부 표현에서 관측 공간으로 가는 사상이고, 시뮬레이션은 같은 내부 표현 위에서 시간 발전 연산자를 적용하는 것이다.
+        따라서 embodied AI에서 중요한 질문은 “얼마나 사실적인 영상을 만드는가”만이 아니라, “그 표현이 행동에 대해 동역학적으로 예측 가능하고,
+        동시에 관측으로 decode 가능하며, 목표에 따라 행동을 선택할 만큼 구조화되어 있는가”이다.
+      </div>
+    </section>
+
     <section id="vla">
-      <h2>3. VLA의 위치</h2>
+      <h2>4. VLA의 위치</h2>
       <p>
         <strong>Vision-Language-Action</strong>, 즉 VLA 모델은 시각 관측과 언어 지시를 받아 로봇 행동을 출력하는 모델이다.
         가장 단순한 도식은 다음과 같다.
@@ -441,7 +527,7 @@
     </section>
 
     <section id="wam">
-      <h2>4. WAM의 등장</h2>
+      <h2>5. WAM의 등장</h2>
       <p>
         <strong>World Action Model</strong>, 즉 WAM은 VLA와 world model의 결합을 가리키는 최근 용어이다. 간단히 말하면,
         VLA가 “보고 곧바로 행동하는” 모델이라면, WAM은 “행동 전후의 세계 변화를 모델링하면서 행동하는” 모델이다.
@@ -495,7 +581,7 @@
     </section>
 
     <section id="surveys">
-      <h2>5. 2026년 이후 서베이의 공통 주장</h2>
+      <h2>6. 2026년 이후 서베이의 공통 주장</h2>
       <p>
         최근 서베이들은 서로 다른 용어를 쓰지만, 공통된 방향을 가리킨다. 그 방향은 “더 큰 VLA를 만들면 로봇 지능이 완성된다”가 아니다.
         오히려 VLA, world model, reward model, embodiment interface, data engine이 함께 구성되어야 한다는 쪽이다.
@@ -563,7 +649,7 @@
     </section>
 
     <section id="agenda">
-      <h2>6. Embodied Robot을 위한 연구 의제</h2>
+      <h2>7. Embodied Robot을 위한 연구 의제</h2>
       <p>
         지금의 흐름을 종합하면, 궁극적 embodied robot은 하나의 거대한 end-to-end network를 단순히 키운다고 만들어지지 않는다.
         필요한 것은 물리 세계와 지속적으로 접속하는 학습 체계이다. 이 체계는 적어도 다음 여섯 조건을 만족해야 한다.
@@ -607,7 +693,7 @@
     </section>
 
     <section id="architecture">
-      <h2>7. 가능한 시스템 구조</h2>
+      <h2>8. 가능한 시스템 구조</h2>
       <p>
         현재 문헌을 바탕으로 가장 설득력 있는 구조는 단일 계층의 monolithic agent가 아니라, 계층적이고 폐루프적인 robot foundation system이다.
         이 구조는 다음과 같이 표현할 수 있다.
@@ -642,6 +728,56 @@
         Renderer는 세계를 보이게 한다. Simulator는 세계의 변화를 예측한다. Planner는 행동을 고른다.
         VLA는 주로 planner이다. World model은 주로 simulator이다. WAM은 이 둘을 결합하려는 현재의 대표적 흐름이다.
         궁극적 embodied robot은 여기에 data interface, embodiment interface, reward interface, low-level control, deployment feedback loop를 더해야 한다.
+      </div>
+    </section>
+
+    <section id="recap">
+      <h2>9. 종합 정리: VLA와 World Model 이후의 문제</h2>
+      <p>
+        이제 전체 논의를 다시 묶어 보자. Fei-Fei Li식 기능 분류는 world model 논의를 세 역할로 분해한다.
+        Renderer는 내부 상태를 관측으로 만든다. Simulator는 행동에 따른 상태 변화를 예측한다. Planner는 목표에 맞는 행동을 고른다.
+        수학적으로는 이 세 역할이 하나의 내부 상태 공간 <code>Z</code> 위에서 각각 <code>R</code>, <code>F</code>, <code>Π</code>라는 연산으로 정의된다.
+        이때 핵심은 <code>Z</code>가 단순히 예쁜 영상을 만들기 위한 latent가 아니라, 관측 가능하고, 시간적으로 전개 가능하고, 행동 선택에 쓸 수 있는
+        예측적 표현이어야 한다는 점이다.
+      </p>
+      <p>
+        VLA는 이 체계에서 주로 planner 또는 policy interface의 위치에 놓인다. 그것은 이미지와 언어를 받아 행동을 출력한다.
+        그러나 VLA가 강력하다고 해서 물리 세계의 모든 문제가 해결되지는 않는다. VLA가 학습하는 데이터는 대개 이미 로봇 행동, task label,
+        success signal이 붙어 있는 robot-native supervision이다. 이 데이터는 매우 유용하지만, 바로 그 이유 때문에 스케일링 한계를 갖는다.
+        세상에 존재하는 대부분의 물리적 경험은 로봇 학습 좌표계로 정리되어 있지 않기 때문이다.
+      </p>
+      <p>
+        <a href="https://arxiv.org/abs/2606.06556">Robots Need More than VLA and World Models</a>는 바로 이 점을 결론으로 밀어붙인다
+        <a href="#ref20">[20]</a>. 저자들의 주장은 “더 큰 VLA”도 아니고 “더 사실적인 video world model”도 아니다.
+        병목은 물리 세계의 거대한 행동 데이터를 로봇이 사용할 수 있는 supervision으로 바꾸는 <strong>grounding pipeline</strong>의 부재이다.
+        인간의 행동, 인터넷 비디오, wearable sensing, simulation rollout, robot failure trace에는 task, contact, goal, failure, physical constraint에 관한 정보가 들어 있다.
+        그러나 이 정보는 보통 robot action, reward, embodiment constraint, task phase, success explanation으로 주어지지 않는다.
+      </p>
+      <p>
+        따라서 논문이 제안하는 차세대 로봇 지능의 구조는 다음과 같은 순환 구조이다.
+      </p>
+      <span class="formula">
+        physical experience<br>
+        -> embodied autolabelling<br>
+        -> task-preserving retargeting<br>
+        -> physics-grounded world model<br>
+        -> task-conditioned reward grounding<br>
+        -> VLA / robot policy<br>
+        -> deployment<br>
+        -> failure, correction, success trace<br>
+        -> 다시 physical data engine으로
+      </span>
+      <p>
+        이 순환 구조에서 renderer, simulator, planner의 의미도 더 분명해진다. Renderer는 관측을 만들고 데이터를 확장하는 데 기여한다.
+        Simulator는 action의 물리적 결과를 예측하고 counterfactual experience를 제공한다. Planner 또는 VLA는 그 예측과 목표를 바탕으로 행동을 선택한다.
+        그러나 이것만으로도 충분하지 않다. 실제 embodied robot에는 data interface, embodiment interface, reward interface가 필요하다.
+        즉 세계를 보는 모델, 세계를 예측하는 모델, 행동을 고르는 모델에 더해, 세계의 물리적 경험을 로봇 학습의 언어로 번역하는 장치가 필요하다.
+      </p>
+      <div class="note">
+        <strong>마지막 명제.</strong>
+        궁극적 embodied robot은 하나의 거대한 VLA도 아니고, 하나의 아름다운 video world model도 아니다.
+        그것은 물리 경험을 object state, contact, latent action, reward, failure explanation, executable action으로 변환하고,
+        그 변환을 실제 배포 루프에서 계속 갱신하는 폐루프 학습 시스템이다.
       </div>
     </section>
 
