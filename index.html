@@ -579,6 +579,32 @@
         WAM은 Fei-Fei Li의 세 기능으로 보면 simulator와 planner의 결합이다. 다만 비디오 생성 backbone을 사용할 경우 renderer 성분도 포함한다.
         따라서 WAM은 세 부류 중 하나가 아니라, 세 기능이 서로 결합되는 현재 연구 경향을 보여주는 이름이다.
       </div>
+
+      <div class="note">
+        <strong>보충: WAM은 VLA의 상위 개념인가.</strong>
+        기능적ㆍ수학적 정의로는 대체로 그렇다고 볼 수 있다. 다만 이것은 모든 WAM 구현이 모든 VLA 구현을 아키텍처적으로 포함한다는 뜻은 아니다.
+        더 정확히는 WAM이 VLA에 world dynamics 또는 consequence prediction 항을 추가한 일반화된 formulation이라는 뜻이다.
+        VLA는 보통 다음과 같은 policy-only 모델로 쓸 수 있다.
+        <span class="formula">π(a_t | o_t, l, h_t)</span>
+        여기서 <code>o_t</code>는 현재 관측, <code>l</code>은 언어 지시, <code>h_t</code>는 과거 history, <code>a_t</code>는 행동이다.
+        즉 VLA는 현재까지의 관측과 지시로부터 곧바로 행동을 뽑는다.
+        WAM은 여기에 미래 세계 변화와 행동의 결합 분포를 함께 모델링한다.
+        <span class="formula">p(a_t, z_{t+1:T}, o_{t+1:T} | o_{≤t}, a_{&lt;t}, l)</span>
+        또는 더 구조적으로 쓰면 다음과 같다.
+        <span class="formula">
+          z_t = E(o_{≤t}, a_{&lt;t}, l)<br>
+          z_{t+1} ~ F(z_t, a_t)<br>
+          a_t ~ Π(z_t, l, g)<br>
+          o_t ~ R(z_t)
+        </span>
+        따라서 WAM은 action만 출력하는 모델이 아니라, action과 그 action이 만들 미래 world trajectory를 함께 다루는 모델이다.
+        이때 world prediction 부분을 marginalize하거나 사용하지 않으면 WAM은 VLA처럼 행동할 수 있다.
+        <span class="formula">π_WAM(a_t | o_{≤t}, l) = ∫ p(a_t, z_{t+1:T} | o_{≤t}, l) dz</span>
+        이 의미에서 VLA는 WAM의 special case 또는 policy marginal이라고 할 수 있다.
+        하지만 아키텍처 계보까지 포함한 집합 관계는 아니다. 어떤 WAM은 비디오 diffusion 기반이고, 어떤 VLA는 language-action transformer 기반일 수 있다.
+        그러므로 가장 정확한 말은 다음과 같다. <strong>VLA는 policy-only planner이고, WAM은 world-dynamics-aware planner이다.</strong>
+        Fei-Fei Li식 분류로 쓰면 VLA는 주로 planner이고, WAM은 planner와 simulator의 결합이다. Renderer까지 사용하는 WAM은 renderer, simulator, planner를 모두 포함하는 closed-loop world model에 가까워진다.
+      </div>
     </section>
 
     <section id="surveys">
