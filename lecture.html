@@ -682,37 +682,137 @@
         필요한 것은 물리 세계와 지속적으로 접속하는 학습 체계이다. 이 체계는 적어도 다음 여섯 조건을 만족해야 한다.
       </p>
 
-      <h3>6.1 의미 이해와 행동 생성을 결합해야 한다</h3>
+      <h3>7.1 기존 연구는 어디까지 왔는가</h3>
+      <p>
+        여기서 한 가지 오해를 피해야 한다. “Robots Need More than VLA and World Models”가 제안한 data interface, embodiment interface,
+        world-model interface, reward interface는 전혀 연구되지 않았던 네 가지 새 항목이 아니다<a href="#ref20">[20]</a>.
+        오히려 이 논문은 지금까지 renderer, simulator, planner, WAM의 각 축에서 이미 이루어진 성취를 인정하면서도,
+        그 성취가 로봇이 실제로 사용할 수 있는 supervision으로 변환되는 지점이 아직 약하다고 평가한다.
+      </p>
+      <p>
+        다시 말해 문제는 “VLA가 쓸모없다”거나 “world model이 틀렸다”는 것이 아니다. VLA는 강력한 policy interface이고,
+        world model은 행동 결과를 예측하는 핵심 장치이며, WAM은 둘을 결합하려는 중요한 방향이다. 다만 이들은 대부분
+        이미 정리된 로봇 데이터, 이미 정의된 action space, 이미 주어진 task label과 reward 안에서 가장 잘 작동한다.
+        세계에는 그보다 훨씬 더 많은 물리적 행동 데이터가 있지만, 그 데이터는 로봇의 좌표계로 정리되어 있지 않다.
+      </p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>기존 축</th>
+            <th>대표 흐름</th>
+            <th>이미 달성된 것</th>
+            <th>남은 병목</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Planner / VLA</td>
+            <td>RT-2, OpenVLA, π₀, GR00T, Gemini Robotics</td>
+            <td>관측과 언어를 행동으로 연결하는 능력은 크게 진전했다. 다양한 task, embodiment, language-conditioned action에서 성능이 올라갔다.</td>
+            <td>대부분 robot-native supervision에 의존한다. 즉 행동, task label, reward가 이미 로봇 데이터의 형식으로 주어진 경우에 강하다.</td>
+          </tr>
+          <tr>
+            <td>Renderer</td>
+            <td>Sora, Veo, Genie 계열</td>
+            <td>visual world prior, future observation, interactive scene generation의 가능성을 보였다.</td>
+            <td>시각적으로 그럴듯한 장면과 로봇 제어에 필요한 물리 변수는 다르다. contact, force, friction, stability가 보존되어야 한다.</td>
+          </tr>
+          <tr>
+            <td>Simulator / World model</td>
+            <td>Dreamer, Cosmos, action-conditioned video world model, 3D world model</td>
+            <td>imagined rollout, counterfactual experience, policy optimisation의 장을 제공할 수 있음을 보였다.</td>
+            <td>pixel future만 맞히는 것은 부족하다. control에 중요한 object state, geometry, contact, material response, uncertainty가 필요하다.</td>
+          </tr>
+          <tr>
+            <td>WAM</td>
+            <td>DreamZero, UVA, Fast-WAM, OA-WAM</td>
+            <td>VLA처럼 action만 직접 출력하지 않고, 미래 상태와 action을 함께 다루려는 결합형 패러다임을 제시했다.</td>
+            <td>미래를 상상하는 능력과 실제 로봇 성공 사이에는 retargeting, reward grounding, deployment feedback이라는 간극이 남아 있다.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p>
+        따라서 네 인터페이스는 기존 세 기능과 WAM의 바깥에 따로 붙는 장식이 아니다. 그것들은 각 기능을 로봇 학습 파이프라인 안으로
+        집어넣기 위한 변환 장치이다. Data interface는 비정형 행동 데이터를 object state, contact, task phase, latent action으로 바꾸고,
+        embodiment interface는 사람이나 다른 로봇의 행동을 목표 로봇이 실행할 수 있는 행동으로 옮긴다. World-model interface는
+        그 행동의 결과를 물리적으로 예측하며, reward interface는 그 결과가 주어진 목표 아래에서 진전인지 실패인지 해석한다.
+      </p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>인터페이스</th>
+            <th>현재 성숙도</th>
+            <th>평가</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Data interface</td>
+            <td>부분적으로 진행</td>
+            <td>R3M, VIP, LAPA, latent-action learning, video reward learning 등이 이미 이 방향을 연다. 그러나 비디오나 센서 로그에서 contact, task phase, success, latent action을 안정적으로 자동 라벨링하는 수준은 아직 미완이다.</td>
+          </tr>
+          <tr>
+            <td>Embodiment interface</td>
+            <td>초기에서 중간 단계</td>
+            <td>cross-embodiment dataset, humanoid VLA, human video retargeting이 등장했지만, 단순 pose matching을 넘어 task-relevant physical effect를 보존하는 것은 어렵다.</td>
+          </tr>
+          <tr>
+            <td>World-model interface</td>
+            <td>빠르게 진행 중</td>
+            <td>가장 활발한 축이다. 다만 목표는 “미래가 그럴듯하게 보이는가”가 아니라 “성공과 실패를 결정하는 물리적 결과를 보존하는가”가 되어야 한다.</td>
+          </tr>
+          <tr>
+            <td>Reward interface</td>
+            <td>가장 미성숙</td>
+            <td>reward model과 VLM evaluator는 있지만, goal, task phase, object state, contact에 묶인 task-conditioned physical interpretation은 아직 약하다.</td>
+          </tr>
+          <tr>
+            <td>Deployment loop</td>
+            <td>초기 단계</td>
+            <td>실패 로그를 structured supervision으로 회수하고, world model과 policy와 reward model을 함께 갱신하는 폐루프는 아직 연구 의제에 가깝다.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="note">
+        <strong>핵심 평가.</strong> 기존 연구는 모델 기능 수준에서는 상당히 전진했다. 그러나 일반 로봇 지능의 병목은 이제 모델 하나의 성능보다,
+        세계의 비정형 물리 경험을 로봇이 학습할 수 있는 변수로 번역하는 인터페이스의 부재에 있다.
+      </div>
+
+      <h3>7.2 의미 이해와 행동 생성을 결합해야 한다</h3>
       <p>
         로봇은 언어 지시를 이해해야 한다. 물체 이름, 장소, 관계, 암묵적 목표를 해석해야 한다. 이 점에서 VLA는 필수이다.
         그러나 VLA는 planner 또는 policy로 이해해야 한다. 그것은 세계가 어떻게 변할지에 대한 충분한 모델을 자동으로 포함하지 않는다.
       </p>
 
-      <h3>6.2 행동 결과를 예측해야 한다</h3>
+      <h3>7.3 행동 결과를 예측해야 한다</h3>
       <p>
         로봇이 컵을 집을 때 중요한 것은 “컵이라는 단어를 안다”는 사실이 아니다. 어느 방향에서 접근하면 미끄러지는지, 어느 힘을 넘으면 넘어지는지,
         장애물과 충돌하지 않는지, 실패했을 때 어떤 회복 행동이 가능한지를 알아야 한다. 이 영역이 simulator의 영역이다.
       </p>
 
-      <h3>6.3 시각적 생성은 물리적 예측과 구별되어야 한다</h3>
+      <h3>7.4 시각적 생성은 물리적 예측과 구별되어야 한다</h3>
       <p>
         현실적인 비디오를 생성하는 능력은 중요하다. 그것은 데이터 생성, future observation, human inspection, virtual training에 쓰인다.
         그러나 시각적으로 그럴듯한 장면과 물리적으로 올바른 상태 변화는 다르다. Renderer의 성공이 곧 simulator의 성공은 아니다.
       </p>
 
-      <h3>6.4 데이터는 로봇 demonstration 바깥에서 와야 한다</h3>
+      <h3>7.5 데이터는 로봇 demonstration 바깥에서 와야 한다</h3>
       <p>
         로봇 teleoperation만으로는 충분한 규모와 다양성을 얻기 어렵다. 인간 행동 비디오, 1인칭 영상, 시뮬레이션, 실패 로그, 배포 후 상호작용이
         모두 학습 재료가 되어야 한다. 문제는 이것들이 곧바로 행동 라벨이 아니라는 점이다. 따라서 data interface와 reward interface가 필요하다.
       </p>
 
-      <h3>6.5 Embodiment를 추상화해야 한다</h3>
+      <h3>7.6 Embodiment를 추상화해야 한다</h3>
       <p>
         사람의 손, Franka arm, ALOHA, 휴머노이드, 이동 조작 로봇은 서로 다른 신체를 가진다. 동일한 “문을 연다”라는 과제도 action space는 완전히 다르다.
         그러므로 로봇 지능은 특정 joint trajectory에만 묶여서는 안 된다. 접촉, affordance, object-centric state, skill primitive, retargetable motion representation이 필요하다.
       </p>
 
-      <h3>6.6 배포 후 자기개선 루프가 있어야 한다</h3>
+      <h3>7.7 배포 후 자기개선 루프가 있어야 한다</h3>
       <p>
         실제 로봇은 실험실 밖에서 실패한다. 실패를 수집하고, world model 안에서 counterfactual rollout을 만들고, reward model로 성공 가능성을 평가하며,
         policy를 다시 학습하는 루프가 있어야 한다. 이 루프가 없으면 로봇은 정적인 벤치마크에서는 좋아 보여도 실제 환경의 분포 변화에 약하다.
